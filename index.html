@@ -1,1 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaizen Mould Technology - Excel Export Center</title>
+    <!-- 引入 SheetJS 库，确保导出标准的 Excel .xlsx 格式 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { color: #1e3a8a; margin-top: 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        .filter-section { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 18px; margin-bottom: 20px; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #475569; }
+        .filter-group input, .filter-group select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; }
+        .btn-container { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-all { background-color: #059669; color: white; }
+        .btn-all:hover { background-color: #047857; }
+        .btn-filter { background-color: #2563eb; color: white; }
+        .btn-filter:hover { background-color: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 14px; }
+        th { background: #f1f5f9; color: #334155; }
+        .status-badge { background: #d1fae5; color: #047857; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h2>📊 HR Overtime Excel Export Center (加班数据独立导出系统)</h2>
+    
+    <!-- 筛选条件区域 -->
+    <div class="filter-section">
+        <strong style="font-size: 15px; color: #1e293b;">🔍 自定义筛选导出 (Custom Export Filter)</strong>
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>部门 (Department):</label>
+                <select id="selDept">
+                    <option value="">-- 所有部门 (All) --</option>
+                    <option value="CAD">CAD DEPARTMENT</option>
+                    <option value="CAM">CAM DEPARTMENT</option>
+                    <option value="CNC">CNC DEPARTMENT</option>
+                    <option value="EDM">EDM DEPARTMENT</option>
+                    <option value="PROJECT">PROJECT DEPARTMENT</option>
+                    <option value="POLISHING">POLISHING DEPARTMENT</option>
+                    <option value="PRODUCTION">PRODUCTION DEPARTMENT</option>
+                    <option value="INJECTION_TRIAL">INJECTION TRIAL DEPARTMENT</option>
+                    <option value="MOULD_MAKER">MOULD MAKER DEPARTMENT</option>
+                    <option value="QC">QUALITY CONTROL (QC)</option>
+                    <option value="ADMIN_HR">ADMIN & HR DEPARTMENT</option>
+                    <option value="PURCHASING">PURCHASING DEPARTMENT</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>员工姓名 (Employee Name):</label>
+                <input type="text" id="inpName" placeholder="输入姓名过滤">
+            </div>
+            <div class="filter-group">
+                <label>工号 (Emp ID):</label>
+                <input type="text" id="inpId" placeholder="输入工号过滤">
+            </div>
+            <div class="filter-group">
+                <label>开始日期 (Start Date):</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label>结束日期 (End Date):</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn btn-all" onclick="processExport(false)">导出全部数据 (Export All)</button>
+            <button class="btn btn-filter" onclick="processExport(true)">按指定条件导出 (Export Filtered Data)</button>
+        </div>
+    </div>
+
+    <!-- 实时可浏览的数据展示表格 -->
+    <h3>数据预览 (Data Monitor)</h3>
+    <table id="exportDataTable">
+        <thead>
+            <tr>
+                <th>Dept / 部门</th>
+                <th>Name / 姓名</th>
+                <th>Emp ID / 工号</th>
+                <th>Date / 日期</th>
+                <th>Time / 时间</th>
+                <th>Hours / 时数</th>
+                <th>Reason / 原因用途</th>
+                <th>Status / 状态</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 此处可自动读取主系统 LocalStorage 数据或维持模板记录 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+// 页面加载时自动从浏览器的同步缓存读取主系统的数据，若无则显示示例
+window.onload = function() {
+    loadSystemData();
+};
+
+function loadSystemData() {
+    const tbody = document.querySelector("#exportDataTable tbody");
+    // 尝试读取主系统的 LocalStorage 记录
+    let localData = localStorage.getItem("ot_records") || localStorage.getItem("hr_ot_logs");
+    
+    if (localData) {
+        let logs = JSON.parse(localData);
+        tbody.innerHTML = "";
+        logs.forEach(item => {
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${item.dept || ''}</td>
+                <td><strong>${item.name || ''}</strong></td>
+                <td>${item.id || ''}</td>
+                <td>${item.date || ''}</td>
+                <td>${item.time || ''}</td>
+                <td style="color:#2563eb; font-weight:bold;">${item.hours || ''}</td>
+                <td>${item.reason || ''}</td>
+                <td><span class="status-badge">${item.status || 'APPROVED'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+function processExport(isFiltered) {
+    const rows = document.querySelectorAll("#exportDataTable tbody tr");
+    
+    const filterDept = isFiltered ? document.getElementById("selDept").value.toUpperCase().trim() : "";
+    const filterName = isFiltered ? document.getElementById("inpName").value.toLowerCase().trim() : "";
+    const filterId = isFiltered ? document.getElementById("inpId").value.trim() : "";
+    const filterStartDate = isFiltered ? document.getElementById("startDate").value : "";
+    const filterEndDate = isFiltered ? document.getElementById("endDate").value : "";
+
+    const excelRows = [
+        ["Department", "Employee Name", "Emp ID", "Date", "Time Range", "OT Hours", "Purpose & Reason", "Status"]
+    ];
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length < 8) return;
+
+        const dept = cells[0].innerText.trim();
+        const name = cells[1].innerText.trim();
+        const id = cells[2].innerText.trim();
+        const date = cells[3].innerText.trim();
+        const time = cells[4].innerText.trim();
+        const hours = cells[5].innerText.trim();
+        const reason = cells[6].innerText.trim();
+        const status = cells[7].innerText.trim();
+
+        if (isFiltered) {
+            if (filterDept && !dept.toUpperCase().includes(filterDept)) return;
+            if (filterName && !name.toLowerCase().includes(filterName)) return;
+            if (filterId && id !== filterId) return;
+            if (filterStartDate && date < filterStartDate) return;
+            if (filterEndDate && date > filterEndDate) return;
+        }
+
+        excelRows.push([dept, name, id, date, time, hours, reason, status]);
+    });
+
+    if (excelRows.length <= 1) {
+        alert("没有找到符合筛选条件的数据记录！");
+        return;
+    }
+
+    // 生成并下载标准 Excel .xlsx 文件
+    const worksheet = XLSX.utils.aoa_to_sheet(excelRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "OT_Report");
+
+    const fileName = isFiltered ? `OT_Report_Filtered_${new Date().toISOString().slice(0,10)}.xlsx` : `OT_Report_All_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+}
+</script>
+
+</body>
+</html>
