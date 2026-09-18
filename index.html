@@ -1,248 +1,443 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaizen Mould Technology - Daily Overtime Management System</title>
-    <!-- 引入 FontAwesome 图标库与 SheetJS 导出库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
-        .card { background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 24px; max-width: 1200px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .title-area h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #0f172a; }
-        .title-area p { margin: 0; font-size: 13px; color: #64748b; }
-        .actions { display: flex; gap: 10px; }
-        
-        /* 原版绿色 Export 按钮样式 */
-        .btn-export { background-color: #059669; color: white; border: none; padding: 9px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .btn-export:hover { background-color: #047857; }
-        .btn-refresh { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .btn-refresh:hover { background-color: #e2e8f0; }
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
-        /* 新增：自定义筛选导出工具栏 */
-        .filter-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .filter-group { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #475569; }
-        .filter-input { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; }
-        .btn-filter-export { background-color: #2563eb; color: white; border: none; padding: 7px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; margin-left: auto; }
-        .btn-filter-export:hover { background-color: #1d4ed8; }
+# Raw text parsing
+raw_text = """
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+POLISHING-
+APPROVED Edit
+Pending
+Submit
+CNC-
+APPROVED Edit
+Pending
+Submit
+CNC-
+APPROVED Edit
+Pending
+Submit
+CNC-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+PRODUCTION-
+APPROVED Edit
+Pending
+Submit
+EDM-
+APPROVED Edit
+Pending
+Submit
+POLISHING-
+APPROVED Edit
+Pending
+Submit
+POLISHING-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+MOULD_MAKER-
+APPROVED Edit
+Pending
+Submit
+CNC-
+APPROVED Edit
+Pending
+Submit
+CNC-
+APPROVED Edit
+Pending
+Submit
+"""
 
-        /* 完全跟着截图的原版表格格式 */
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 12px 16px; font-size: 13px; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #f1f5f9; color: #334155; }
-        .badge-approved { background-color: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
-        .text-blue { color: #2563eb; font-weight: 700; }
-        .text-bold { font-weight: 700; color: #0f172a; }
-        .btn-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 14px; }
-    </style>
-</head>
-<body>
+# Extract departments from the blocks
+import re
+depts = re.findall(r'([A-Z_]+)-', raw_text)
 
-<div class="card">
-    <div class="header">
-        <div class="title-area">
-            <h3>HR Live Data Monitor (HR 24小时实时接收数据中心)</h3>
-            <p>Full record overview for monthly payroll check and archives. (可直接导出为 Excel 报表作算薪与考勤归档)。</p>
-        </div>
-        <div class="actions">
-            <!-- 修复原版 Export to Excel 按钮 -->
-            <button class="btn-export" onclick="exportData(false)">
-                <i class="fa-solid fa-file-excel"></i> Export to Excel / Muat Turun Excel / 导出 Excel 报表
-            </button>
-            <button class="btn-refresh" onclick="location.reload()">
-                <i class="fa-solid fa-rotate"></i> Refresh
-            </button>
-        </div>
-    </div>
+wb = openpyxl.Workbook()
 
-    <!-- 新增功能：指定部门、员工、编号、时间、日期导出栏 -->
-    <div class="filter-panel">
-        <div class="filter-group">
-            部门:
-            <select id="fDept" class="filter-input">
-                <option value="">全部部门</option>
-                <option value="POLISHING">POLISHING</option>
-                <option value="CNC">CNC</option>
-                <option value="MOULD_MAKER">MOULD_MAKER</option>
-                <option value="CAD">CAD</option>
-                <option value="CAM">CAM</option>
-                <option value="EDM">EDM</option>
-                <option value="PROJECT">PROJECT</option>
-                <option value="PRODUCTION">PRODUCTION</option>
-                <option value="INJECTION_TRIAL">INJECTION_TRIAL</option>
-                <option value="QC">QC</option>
-                <option value="ADMIN_HR">ADMIN_HR</option>
-                <option value="PURCHASING">PURCHASING</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            姓名: <input type="text" id="fName" class="filter-input" placeholder="输入员工姓名" style="width: 100px;">
-        </div>
-        <div class="filter-group">
-            编号: <input type="text" id="fId" class="filter-input" placeholder="工号" style="width: 70px;">
-        </div>
-        <div class="filter-group">
-            日期: <input type="date" id="fStartDate" class="filter-input"> 至 <input type="date" id="fEndDate" class="filter-input">
-        </div>
-        <button class="btn-filter-export" onclick="exportData(true)">
-            <i class="fa-solid fa-filter"></i> 按自定义条件导出 Excel
-        </button>
-    </div>
+# ----------------------------------------------------
+# Sheet 1: OT Records Template / Log
+# ----------------------------------------------------
+ws_log = wb.active
+ws_log.title = "加班记录明细 (OT Logs)"
 
-    <!-- 100% 还原图片数据与表格结构 -->
-    <table id="hrTable">
-        <thead>
-            <tr>
-                <th>Dept</th>
-                <th>Name</th>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Hours</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th style="text-align: center;">Delete</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>POLISHING</td>
-                <td class="text-bold">MIN THU</td>
-                <td>299</td>
-                <td>2026-09-17</td>
-                <td>17:00 - 21:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>721 cr 01</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>CNC</td>
-                <td class="text-bold">BOHARA MILAN</td>
-                <td>294</td>
-                <td>2026-09-17</td>
-                <td>17:00 - 21:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>MMR1898 CRS</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>CNC</td>
-                <td class="text-bold">BHARAT BOHARA</td>
-                <td>290</td>
-                <td>2026-09-17</td>
-                <td>17:00 - 21:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>HIL722 CAV</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>CNC</td>
-                <td class="text-bold">SA MASAN BA</td>
-                <td>27</td>
-                <td>2026-09-17</td>
-                <td>17:00 - 21:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>MMR1927 CAV</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>MOULD_MAKER</td>
-                <td class="text-bold">VIMALKUMAR PUTHIYA VALAPPIL</td>
-                <td>319</td>
-                <td>2026-09-18</td>
-                <td>04:00 - 08:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>Repair mould MMR 1928,1808,1927</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>MOULD_MAKER</td>
-                <td class="text-bold">JAISON CHRISTOPHER</td>
-                <td>311</td>
-                <td>2026-09-18</td>
-                <td>04:00 - 08:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>Repair mould MMR 1928,1808,1927</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-            <tr>
-                <td>MOULD_MAKER</td>
-                <td class="text-bold">MD JAHIR</td>
-                <td>69</td>
-                <td>2026-09-18</td>
-                <td>04:00 - 08:00</td>
-                <td class="text-blue">4.0 hrs</td>
-                <td>Repair mould MMR 1928,1808,1927</td>
-                <td><span class="badge-approved">APPROVED</span></td>
-                <td style="text-align: center;"><button class="btn-delete"><i class="fa-solid fa-trash-can"></i></button></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+# Title Block
+ws_log.merge_cells("A1:I1")
+ws_log["A1"] = "所有加班记录与编辑 (All Submitted OT Logs)"
+ws_log["A1"].font = Font(name="Segoe UI", size=16, bold=True, color="1F4E78")
+ws_log["A1"].alignment = Alignment(horizontal="left", vertical="center")
 
-<script>
-// 统一导出 Excel 处理逻辑（解决点击无反应问题，并支持自定义筛选）
-function exportData(isFiltered) {
-    const table = document.getElementById("hrTable");
-    const rows = table.querySelectorAll("tbody tr");
+ws_log.merge_cells("A2:I2")
+ws_log["A2"] = "24/7 Live Sync across mobile & PC. Click Edit to change records anytime. (全天候 24 小时实时同步，支持随时修改编辑)"
+ws_log["A2"].font = Font(name="Segoe UI", size=10, italic=True, color="595959")
+ws_log["A2"].alignment = Alignment(horizontal="left", vertical="center")
+
+# Headers
+headers = [
+    "No. (序号)", 
+    "Dept / 部门", 
+    "Name / 姓名", 
+    "ID / 工号", 
+    "Date / 日期", 
+    "Time / 时间", 
+    "Hours / 时数", 
+    "Reason / 原因", 
+    "Status / 状态"
+]
+
+header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+thin_border = Border(
+    left=Side(style='thin', color='D9D9D9'),
+    right=Side(style='thin', color='D9D9D9'),
+    top=Side(style='thin', color='D9D9D9'),
+    bottom=Side(style='thin', color='D9D9D9')
+)
+
+ws_log.row_dimensions[4].height = 28
+for col_idx, header in enumerate(headers, 1):
+    cell = ws_log.cell(row=4, column=col_idx, value=header)
+    cell.fill = header_fill
+    cell.font = header_font
+    cell.alignment = header_align
+    cell.border = thin_border
+
+# Populate Data
+zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
+status_fill_approved = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
+status_font_approved = Font(name="Segoe UI", size=10, color="375623", bold=True)
+
+start_row = 5
+for idx, dept in enumerate(depts, 1):
+    row_num = start_row + idx - 1
+    ws_log.row_dimensions[row_num].height = 22
     
-    const filterDept = isFiltered ? document.getElementById("fDept").value.toUpperCase().trim() : "";
-    const filterName = isFiltered ? document.getElementById("fName").value.toLowerCase().trim() : "";
-    const filterId = isFiltered ? document.getElementById("fId").value.trim() : "";
-    const filterStartDate = isFiltered ? document.getElementById("fStartDate").value : "";
-    const filterEndDate = isFiltered ? document.getElementById("fEndDate").value : "";
+    row_data = [
+        idx,                  # No.
+        dept,                 # Dept
+        "",                   # Name (To be filled)
+        "",                   # ID (To be filled)
+        "",                   # Date (To be filled)
+        "",                   # Time (To be filled)
+        "",                   # Hours (To be filled)
+        "",                   # Reason (To be filled)
+        "APPROVED"            # Status
+    ]
+    
+    for col_idx, val in enumerate(row_data, 1):
+        cell = ws_log.cell(row=row_num, column=col_idx, value=val)
+        cell.font = Font(name="Segoe UI", size=10)
+        cell.border = thin_border
+        
+        # Formatting & Alignments
+        if col_idx == 1:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        elif col_idx in (2, 9):
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        elif col_idx in (3, 4, 8):
+            cell.alignment = Alignment(horizontal="left", vertical="center")
+        elif col_idx in (5, 6, 7):
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            
+        # Status highlighting
+        if col_idx == 9 and val == "APPROVED":
+            cell.fill = status_fill_approved
+            cell.font = status_font_approved
+        elif idx % 2 == 0 and col_idx != 9:
+            cell.fill = zebra_fill
 
-    const exportRows = [
-        ["Dept", "Name", "ID", "Date", "Time", "Hours", "Reason", "Status"]
-    ];
+# Add Summary Footer Row
+total_row = start_row + len(depts)
+ws_log.row_dimensions[total_row].height = 25
+ws_log.cell(row=total_row, column=1, value="Total Records / 总计笔数").font = Font(name="Segoe UI", size=11, bold=True, color="1F4E78")
+ws_log.cell(row=total_row, column=1).alignment = Alignment(horizontal="right", vertical="center")
+ws_log.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=6)
 
-    rows.forEach(row => {
-        const cells = row.querySelectorAll("td");
-        if (cells.length < 8) return;
+total_count_cell = ws_log.cell(row=total_row, column=7, value=f"=COUNTA(B{start_row}:B{total_row-1})")
+total_count_cell.font = Font(name="Segoe UI", size=11, bold=True)
+total_count_cell.alignment = Alignment(horizontal="center", vertical="center")
 
-        const dept = cells[0].innerText.trim();
-        const name = cells[1].innerText.trim();
-        const id = cells[2].innerText.trim();
-        const date = cells[3].innerText.trim();
-        const time = cells[4].innerText.trim();
-        const hours = cells[5].innerText.trim();
-        const reason = cells[6].innerText.trim();
-        const status = cells[7].innerText.trim();
+thick_top_double_bottom = Border(
+    top=Side(style='thin', color='1F4E78'),
+    bottom=Side(style='double', color='1F4E78')
+)
+for c in range(1, 10):
+    ws_log.cell(row=total_row, column=c).border = thick_top_double_bottom
 
-        // 筛选匹配条件
-        if (isFiltered) {
-            if (filterDept && !dept.toUpperCase().includes(filterDept)) return;
-            if (filterName && !name.toLowerCase().includes(filterName)) return;
-            if (filterId && id !== filterId) return;
-            if (filterStartDate && date < filterStartDate) return;
-            if (filterEndDate && date > filterEndDate) return;
-        }
+# ----------------------------------------------------
+# Sheet 2: Department Summary (部门汇总表)
+# ----------------------------------------------------
+ws_sum = wb.create_sheet(title="部门汇总 (Dept Summary)")
 
-        exportRows.push([dept, name, id, date, time, hours, reason, status]);
-    });
+ws_sum.merge_cells("A1:D1")
+ws_sum["A1"] = "部门加班记录汇总统计 (Department Overtime Summary)"
+ws_sum["A1"].font = Font(name="Segoe UI", size=15, bold=True, color="1F4E78")
+ws_sum["A1"].alignment = Alignment(horizontal="left", vertical="center")
 
-    if (exportRows.length <= 1) {
-        alert("未找到符合筛选条件的加班记录！");
-        return;
-    }
+sum_headers = ["No. (序号)", "Department / 部门名称", "Record Count / 记录笔数", "Ratio / 占比"]
+ws_sum.row_dimensions[3].height = 26
 
-    // 调用 SheetJS 生成真实的 .xlsx 文件
-    const worksheet = XLSX.utils.aoa_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "HR_OT_Data");
+for col_idx, h in enumerate(sum_headers, 1):
+    cell = ws_sum.cell(row=3, column=col_idx, value=h)
+    cell.fill = header_fill
+    cell.font = header_font
+    cell.alignment = header_align
+    cell.border = thin_border
 
-    const filename = isFiltered ? "OT_Report_Filtered.xlsx" : "OT_Report_All.xlsx";
-    XLSX.writeFile(workbook, filename);
-}
-</script>
+# Group unique departments
+unique_depts = list(dict.fromkeys(depts))
+sum_start_row = 4
 
-</body>
-</html>
+for idx, d in enumerate(unique_depts, 1):
+    r_idx = sum_start_row + idx - 1
+    ws_sum.row_dimensions[r_idx].height = 22
+    
+    ws_sum.cell(row=r_idx, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+    ws_sum.cell(row=r_idx, column=2, value=d).alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Formula to count from Sheet 1
+    cnt_cell = ws_sum.cell(row=r_idx, column=3, value=f"=COUNTIF('加班记录明细 (OT Logs)'!B$5:B${total_row-1}, B{r_idx})")
+    cnt_cell.alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Ratio formula
+    ratio_cell = ws_sum.cell(row=r_idx, column=4, value=f"=C{r_idx}/SUM(C${sum_start_row}:C${sum_start_row+len(unique_depts)-1})")
+    ratio_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ratio_cell.number_format = '0.0%'
+    
+    for c in range(1, 5):
+        ws_sum.cell(row=r_idx, column=c).font = Font(name="Segoe UI", size=10)
+        ws_sum.cell(row=r_idx, column=c).border = thin_border
+
+# Summary total row
+sum_total_row = sum_start_row + len(unique_depts)
+ws_sum.cell(row=sum_total_row, column=1, value="Total / 合计").font = Font(name="Segoe UI", size=11, bold=True)
+ws_sum.cell(row=sum_total_row, column=1).alignment = Alignment(horizontal="center", vertical="center")
+ws_sum.merge_cells(start_row=sum_total_row, start_column=1, end_row=sum_total_row, end_column=2)
+
+tot_cnt = ws_sum.cell(row=sum_total_row, column=3, value=f"=SUM(C{sum_start_row}:C{sum_total_row-1})")
+tot_cnt.font = Font(name="Segoe UI", size=11, bold=True)
+tot_cnt.alignment = Alignment(horizontal="center", vertical="center")
+
+tot_ratio = ws_sum.cell(row=sum_total_row, column=4, value=f"=SUM(D{sum_start_row}:D{sum_total_row-1})")
+tot_ratio.font = Font(name="Segoe UI", size=11, bold=True)
+tot_ratio.alignment = Alignment(horizontal="center", vertical="center")
+tot_ratio.number_format = '0.0%'
+
+for c in range(1, 5):
+    ws_sum.cell(row=sum_total_row, column=c).border = thick_top_double_bottom
+
+# Auto-adjust column widths
+for ws in [ws_log, ws_sum]:
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            # Skip title row length calculation
+            if cell.row in (1, 2) and col_letter != 'A':
+                continue
+            val_str = str(cell.value or '')
+            max_len = max(max_len, len(val_str))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+# Specific column adjustments for log sheet
+ws_log.column_dimensions['A'].width = 10
+ws_log.column_dimensions['B'].width = 18
+ws_log.column_dimensions['C'].width = 16
+ws_log.column_dimensions['D'].width = 14
+ws_log.column_dimensions['E'].width = 14
+ws_log.column_dimensions['F'].width = 14
+ws_log.column_dimensions['G'].width = 14
+ws_log.column_dimensions['H'].width = 24
+ws_log.column_dimensions['I'].width = 14
+
+ws_sum.column_dimensions['A'].width = 10
+ws_sum.column_dimensions['B'].width = 24
+ws_sum.column_dimensions['C'].width = 20
+ws_sum.column_dimensions['D'].width = 16
+
+file_name = "OT_Logs_Management_System.xlsx"
+wb.save(file_name)
+print(f"[file-tag: code-generated-file-{file_name}]")
