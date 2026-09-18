@@ -357,6 +357,7 @@
             "PURCHASING": { hod: "KALAISELVI A/P SOORIAMOORTHY (ID: 108)", staff: [{ name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" }, { name: "THILAGAH A/P KRISHNAN", id: "212" }] }
         };
 
+        // 🌟 完整预设员工数据（带精确时间段）
         const initialDataset = [
             { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-19", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED" },
             { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-19", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED" },
@@ -434,13 +435,27 @@
                     firebase.initializeApp(defaultFirebaseConfig);
                 }
                 db = firebase.database();
-                db.ref('ot_records').on('value', () => {
-                    fetchRecords();
+                db.ref('ot_records').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if(data) {
+                        let liveList = [];
+                        Object.keys(data).forEach(key => {
+                            const item = data[key];
+                            item.key = key;
+                            liveList.push(item);
+                        });
+                        if(liveList.length > 0) cachedRecords = liveList;
+                    } else {
+                        // 如果云端为空，初始化预设数据
+                        cachedRecords = initialDataset.map((item, idx) => ({ ...item, key: 'init_' + idx }));
+                    }
+                    renderRecords();
                 });
-            } catch(e) { console.log(e); }
-
-            cachedRecords = initialDataset.map((item, idx) => ({ ...item, key: 'init_' + idx }));
-            renderRecords();
+            } catch(e) { 
+                console.log(e);
+                cachedRecords = initialDataset.map((item, idx) => ({ ...item, key: 'init_' + idx }));
+                renderRecords();
+            }
 
             handleDepartmentChange();
             addNewRow(false);
@@ -464,7 +479,6 @@
                 document.getElementById('accessModeBadge').innerText = "HR MANAGEMENT CENTER UNLOCKED";
                 document.getElementById('accessModeBadge').className = "bg-emerald-500 text-white px-2 py-0.5 rounded font-bold animate-pulse";
                 
-                // 登录成功后改变右侧按钮形态，避免逻辑混淆
                 document.getElementById('hrAuthBtnContainer').innerHTML = `
                     <button onclick="logoutHR()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-right-from-bracket"></i> HR Log Out (安全退出)
