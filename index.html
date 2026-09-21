@@ -1,58 +1,41 @@
+<script>
 function exportOTLogsToExcel() {
     // 自动寻找页面上的表格（支持 HR Live Data Monitor 或 All Submitted OT Logs 表格）
     const table = document.querySelector("#hrLiveTable tbody") || document.querySelector("table");
-    
     if (!table) {
         alert("找不到表格数据！");
         return;
     }
 
-    // 加入 UTF-8 BOM (\uFEFF)，确保中、英、马来文字符、时间及名字在 Excel 中打开绝对不乱码
     let csvContent = "\uFEFF"; 
-    
-    // 严格与你页面表格对应的标准表头（绝不篡改你的任何栏位设计）
     const headers = [
-        "Dept / 部门", 
-        "Name / 姓名", 
-        "Emp ID / 工号", 
-        "Date / 日期", 
-        "Start Time / 开始时间", 
-        "End Time / 结束时间", 
-        "Total Hours / 总时数", 
-        "Purpose & Reason / 原因用途", 
-        "Status / 状态"
+        "Dept / 部门", "Name / 姓名", "Emp ID / 工号", "Date / 日期", 
+        "Start Time / 开始时间", "End Time / 结束时间", "Total Hours / 总时数", 
+        "Purpose & Reason / 原因用途", "Status / 状态"
     ];
     csvContent += headers.join(",") + "\r\n";
 
-    // 严谨抓取每一行员工填写的历史记录与时间，确保一个不漏
     const rows = table.querySelectorAll("tr");
-    
     rows.forEach(row => {
         const cols = row.querySelectorAll("td");
-        if (cols.length >= 8) { // 确认是员工填写的有效记录行
+        if (cols.length >= 8) {
             let rowData = [];
-            
-            // 逐个格子精确提取：绝对不改动任何员工的原始输入
             for (let i = 0; i < 8; i++) {
                 let text = cols[i] ? cols[i].innerText.trim().replace(/"/g, '""') : "";
-                // 用双引号将内容包裹，防止原因或名字里的特殊符号导致表格错位
                 rowData.push(`"${text}"`);
             }
-            
             csvContent += rowData.join(",") + "\r\n";
         }
     });
 
-    // 触发下载，方便 HR Management 直接拿来记录和算薪
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    
     const timestamp = new Date().toISOString().slice(0, 10);
     link.setAttribute("download", `Kaizen_OT_Records_${timestamp}.csv`);
-    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
+</script>
