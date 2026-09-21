@@ -268,21 +268,67 @@
                 </div>
             </div>
 
-            <!-- HR VIEW TABLE & EXPORT REPORT BAR -->
+            <!-- HR VIEW TABLE & EXPORT REPORT BAR WITH FILTER OPTIONS -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor (HR 24小时实时接收数据中心)</h3>
-                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可直接导出为 Excel 报表作算薪与考勤归档)。</p>
+                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可直接筛选并导出为 Excel 报表作算薪与考勤归档)。</p>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <!-- EXPORT TO EXCEL BUTTON -->
-                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel text-sm"></i> Export to Excel / Muat Turun Excel / 导出 Excel 报表
-                        </button>
                         <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
                             <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- EXPORT FILTER CONTROLS BAR -->
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Dept / 筛选部门</label>
+                        <select id="exportDept" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                            <option value="">-- All / 所有部门 --</option>
+                            <option value="CAD">CAD</option>
+                            <option value="CAM">CAM</option>
+                            <option value="CNC">CNC</option>
+                            <option value="EDM">EDM</option>
+                            <option value="PROJECT">PROJECT</option>
+                            <option value="POLISHING">POLISHING</option>
+                            <option value="PRODUCTION">PRODUCTION</option>
+                            <option value="INJECTION_TRIAL">INJECTION TRIAL</option>
+                            <option value="MOULD_MAKER">MOULD MAKER</option>
+                            <option value="QC">QC</option>
+                            <option value="ADMIN_HR">ADMIN & HR</option>
+                            <option value="PURCHASING">PURCHASING</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Month / 筛选月份</label>
+                        <select id="exportMonth" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                            <option value="">-- All Months / 所有月份 --</option>
+                            <option value="01">01 月</option>
+                            <option value="02">02 月</option>
+                            <option value="03">03 月</option>
+                            <option value="04">04 月</option>
+                            <option value="05">05 月</option>
+                            <option value="06">06 月</option>
+                            <option value="07">07 月</option>
+                            <option value="08">08 月</option>
+                            <option value="09">09 月</option>
+                            <option value="10">10 月</option>
+                            <option value="11">11 月</option>
+                            <option value="12">12 月</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Year / 筛选年份</label>
+                        <input type="number" id="exportYear" placeholder="e.g. 2026" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <!-- EXPORT TO EXCEL BUTTON -->
+                        <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded shadow transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-excel"></i> Export Filtered Excel (导出 Excel)
                         </button>
                     </div>
                 </div>
@@ -609,6 +655,12 @@
         }
 
         function switchTab(tabName) {
+            // Check if user is trying to access HR Archive without login
+            if(tabName === 'hrArchive' && !isHR) {
+                toggleHRLoginModal();
+                return;
+            }
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active', 'border-blue-600', 'text-blue-600'));
 
@@ -618,7 +670,7 @@
             } else if(tabName === 'mySubmissions') {
                 document.getElementById('tabMySubmissions').classList.remove('hidden');
                 document.getElementById('tabBtnMySubmissions').classList.add('tab-active');
-            } else if(tabName === 'hrArchive') {
+            } else if(tabName === 'hrArchive' && isHR) {
                 document.getElementById('tabHrArchive').classList.remove('hidden');
                 document.getElementById('tabBtnHrArchive').classList.add('tab-active');
             }
@@ -656,7 +708,7 @@
                 tr.innerHTML = `
                     <td class="p-2 font-semibold">${r.dept || '-'}</td>
                     <td class="p-2"><input type="text" id="name_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.name || ''}"></td>
-                    <td class="p-2"><input type="text" id="id_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs text-center" value="${r.id || ''}"></td>
+                    <td class="p-2"><input type="text" id="id_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs text-center font-bold text-slate-700" value="${r.id || ''}"></td>
                     <td class="p-2"><input type="date" id="date_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.date || ''}"></td>
                     <td class="p-2 flex gap-1 items-center">
                         <input type="time" id="start_${key}" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-[11px]" value="${startTime}">
@@ -694,7 +746,7 @@
                 tr.innerHTML = `
                     <td class="p-2 font-semibold">${r.dept || '-'}</td>
                     <td class="p-2 font-medium">${r.name || ''}</td>
-                    <td class="p-2 text-slate-600">${r.id || ''}</td>
+                    <td class="p-2 text-slate-700 font-bold">${r.id || ''}</td>
                     <td class="p-2">${r.date || ''}</td>
                     <td class="p-2">${r.time || ''}</td>
                     <td class="p-2 font-bold text-blue-700">${r.hours || '0'} hrs</td>
@@ -740,12 +792,22 @@
         }
 
         function deleteSingleRecord(key) {
+            if(!isHR) {
+                alert('Access Denied! Please login as HR first.');
+                toggleHRLoginModal();
+                return;
+            }
             if(confirm('Are you sure you want to delete this record?')) {
                 db.ref(`ot_records/${key}`).remove();
             }
         }
 
         function deleteFilteredData() {
+            if(!isHR) {
+                alert('Access Denied! Please login as HR first.');
+                toggleHRLoginModal();
+                return;
+            }
             if(!db) return;
             const dept = document.getElementById('delDept').value;
             const nameOrId = document.getElementById('delNameOrId').value.trim().toLowerCase();
@@ -800,6 +862,11 @@
         }
 
         function clearAllData() {
+            if(!isHR) {
+                alert('Access Denied! Please login as HR first.');
+                toggleHRLoginModal();
+                return;
+            }
             if(confirm('⚠️ DANGER: Are you sure you want to completely clear ALL overtime records from the database? This action cannot be undone.')) {
                 if(prompt('Type "DELETE" to confirm:') === 'DELETE') {
                     db.ref('ot_records').remove().then(() => {
@@ -812,12 +879,24 @@
         }
 
         function toggleHRLoginModal() {
+            if(isHR) {
+                if(confirm('Do you want to logout from HR mode?')) {
+                    isHR = false;
+                    document.getElementById('accessModeBadge').innerText = 'STAFF MODE (员工模式)';
+                    document.getElementById('accessModeBadge').className = 'bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold';
+                    document.getElementById('hrLoginBtnText').innerText = 'HR Login (HR 登录)';
+                    switchTab('submit');
+                    alert('Logged out from HR mode.');
+                }
+                return;
+            }
+
             const pass = prompt('Enter HR Password / 输入 HR 密码:');
             if(pass === 'hr123' || pass === 'KaizenHR2026') {
                 isHR = true;
                 document.getElementById('accessModeBadge').innerText = 'HR MODE (HR 管理模式)';
                 document.getElementById('accessModeBadge').className = 'bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold';
-                document.getElementById('hrLoginBtnText').innerText = 'HR Logged In';
+                document.getElementById('hrLoginBtnText').innerText = 'HR Logged In (Logout)';
                 switchTab('hrArchive');
                 alert('HR Access Granted!');
             } else if(pass !== null) {
@@ -826,9 +905,15 @@
         }
 
         /* ========================================================
-         * EXPORT TO EXCEL FEATURE (完全保留所有员工资料与时间)
+         * EXPORT TO EXCEL WITH FILTERS (Dept, Month, Year 筛选导出)
          * ======================================================== */
         function exportToExcel() {
+            if(!isHR) {
+                alert('Access Denied! Please login as HR first to export records.');
+                toggleHRLoginModal();
+                return;
+            }
+
             const records = globalRecordsCache;
             const keys = Object.keys(records || {});
             
@@ -837,10 +922,12 @@
                 return;
             }
 
-            // 加入 UTF-8 BOM 签名（\uFEFF），确保 Excel/WPS 打开中文、马来文不乱码
-            let csvContent = "\uFEFF"; 
-            
-            // 严格设定表头，包含部门、姓名、工号、日期、开始结束时间、总时数、原因、状态
+            // 获取筛选条件
+            const filterDept = document.getElementById('exportDept').value;
+            const filterMonth = document.getElementById('exportMonth').value;
+            const filterYear = document.getElementById('exportYear').value.trim();
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM
             const headers = [
                 "Dept / 部门", 
                 "Name / 姓名", 
@@ -853,30 +940,56 @@
             ];
             csvContent += headers.join(",") + "\r\n";
 
-            // 遍历所有员工填写的资料，确保每一条记录、每一个时间原封不动写入
+            let matchCount = 0;
+
             keys.forEach(key => {
                 const r = records[key];
-                let rowData = [
-                    `"${(r.dept || '').replace(/"/g, '""')}"`,
-                    `"${(r.name || '').replace(/"/g, '""')}"`,
-                    `"${(r.id || '').replace(/"/g, '""')}"`,
-                    `"${(r.date || '').replace(/"/g, '""')}"`,
-                    `"${(r.time || '').replace(/"/g, '""')}"`,
-                    `"${(r.hours || '0').replace(/"/g, '""')}"`,
-                    `"${(r.reason || '').replace(/"/g, '""')}"`,
-                    `"${(r.status || 'PENDING').replace(/"/g, '""')}"`
-                ];
-                csvContent += rowData.join(",") + "\r\n";
+                let match = true;
+
+                // 部门筛选
+                if (filterDept && r.dept !== filterDept) match = false;
+                
+                // 年份与月份筛选 (根据日期格式 YYYY-MM-DD)
+                if (r.date) {
+                    const dateParts = r.date.split('-');
+                    const rYear = dateParts[0];
+                    const rMonth = dateParts[1];
+
+                    if (filterYear && rYear !== filterYear) match = false;
+                    if (filterMonth && rMonth !== filterMonth) match = false;
+                } else if (filterYear || filterMonth) {
+                    match = false;
+                }
+
+                if (match) {
+                    let rowData = [
+                        `"${(r.dept || '').replace(/"/g, '""')}"`,
+                        `"${(r.name || '').replace(/"/g, '""')}"`,
+                        `"${(r.id || '').replace(/"/g, '""')}"`,
+                        `"${(r.date || '').replace(/"/g, '""')}"`,
+                        `"${(r.time || '').replace(/"/g, '""')}"`,
+                        `"${(r.hours || '0').replace(/"/g, '""')}"`,
+                        `"${(r.reason || '').replace(/"/g, '""')}"`,
+                        `"${(r.status || 'PENDING').replace(/"/g, '""')}"`
+                    ];
+                    csvContent += rowData.join(",") + "\r\n";
+                    matchCount++;
+                }
             });
 
-            // 自动触发下载为 CSV 文件，HR Management 可以直接用于算薪与考勤归档
+            if (matchCount === 0) {
+                alert('没有找到符合筛选条件的加班记录！(No records match your filter)');
+                return;
+            }
+
+            // 触发下载
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
             
             const dateStr = new Date().toISOString().slice(0, 10);
-            link.setAttribute("download", `Kaizen_OT_Records_${dateStr}.csv`);
+            link.setAttribute("download", `Kaizen_OT_Filtered_Records_${dateStr}.csv`);
             
             document.body.appendChild(link);
             link.click();
