@@ -97,7 +97,7 @@
                     <i class="fa-solid fa-user-clock"></i> View All Submissions / Ubah & Edit / 查看与修改记录
                 </button>
                 <button onclick="switchTab('hrArchive')" id="tabBtnHrArchive" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">HR Only</span>
+                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">HR Only (需密码)</span>
                 </button>
             </nav>
         </div>
@@ -189,7 +189,7 @@
             </div>
         </div>
 
-        <!-- HR ARCHIVE & DELETE CONTROLS TAB -->
+        <!-- HR ARCHIVE & DELETE CONTROLS TAB (STRICTLY PASSWORD PROTECTED) -->
         <div id="tabHrArchive" class="tab-content hidden space-y-6">
             <!-- DELETE & FILTER CONTROL PANEL -->
             <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
@@ -268,12 +268,12 @@
                 </div>
             </div>
 
-            <!-- HR VIEW TABLE & EXPORT REPORT BAR WITH FILTER OPTIONS -->
+            <!-- HR VIEW TABLE & EXPORT REPORT BAR WITH MULTI-FILTERS -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor (HR 24小时实时接收数据中心)</h3>
-                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可直接筛选并导出为 Excel 报表作算薪与考勤归档)。</p>
+                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可按年份、月份、部门、名字或工号精确筛选并导出 Excel 报表)。</p>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -283,10 +283,10 @@
                     </div>
                 </div>
 
-                <!-- EXPORT FILTER CONTROLS BAR -->
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                <!-- ENHANCED EXPORT FILTER CONTROLS BAR -->
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Dept / 筛选部门</label>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Dept / 筛选部门</label>
                         <select id="exportDept" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
                             <option value="">-- All / 所有部门 --</option>
                             <option value="CAD">CAD</option>
@@ -304,9 +304,13 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Month / 筛选月份</label>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Name / ID / 名字或工号</label>
+                        <input type="text" id="exportNameOrId" placeholder="Name or ID" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Month / 筛选月份</label>
                         <select id="exportMonth" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                            <option value="">-- All Months / 所有月份 --</option>
+                            <option value="">-- All / 所有月份 --</option>
                             <option value="01">01 月</option>
                             <option value="02">02 月</option>
                             <option value="03">03 月</option>
@@ -322,13 +326,13 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Filter Year / 筛选年份</label>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Year / 筛选年份</label>
                         <input type="number" id="exportYear" placeholder="e.g. 2026" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
                     </div>
                     <div>
                         <!-- EXPORT TO EXCEL BUTTON -->
                         <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded shadow transition flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-file-excel"></i> Export Filtered Excel (导出 Excel)
+                            <i class="fa-solid fa-file-excel"></i> Export Filtered Excel
                         </button>
                     </div>
                 </div>
@@ -634,7 +638,7 @@
                     newRef.set({
                         dept: dept,
                         name: name,
-                        id: id || '',
+                        id: id || '', // 牢牢绑定工号
                         date: date,
                         time: `${start} - ${end}`,
                         hours: hours || '0.0',
@@ -655,7 +659,7 @@
         }
 
         function switchTab(tabName) {
-            // Check if user is trying to access HR Archive without login
+            // 严格拦截：如果点击 HR Archive 但没有登录，强制弹出密码框
             if(tabName === 'hrArchive' && !isHR) {
                 toggleHRLoginModal();
                 return;
@@ -708,7 +712,7 @@
                 tr.innerHTML = `
                     <td class="p-2 font-semibold">${r.dept || '-'}</td>
                     <td class="p-2"><input type="text" id="name_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.name || ''}"></td>
-                    <td class="p-2"><input type="text" id="id_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs text-center font-bold text-slate-700" value="${r.id || ''}"></td>
+                    <td class="p-2"><input type="text" id="id_${key}" class="w-full bg-slate-100 border border-slate-200 rounded p-1 text-xs text-center font-bold text-slate-700" value="${r.id || ''}"></td>
                     <td class="p-2"><input type="date" id="date_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.date || ''}"></td>
                     <td class="p-2 flex gap-1 items-center">
                         <input type="time" id="start_${key}" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-[11px]" value="${startTime}">
@@ -905,7 +909,7 @@
         }
 
         /* ========================================================
-         * EXPORT TO EXCEL WITH FILTERS (Dept, Month, Year 筛选导出)
+         * EXPORT TO EXCEL WITH MULTI-FILTERS (Dept, Name/ID, Month, Year)
          * ======================================================== */
         function exportToExcel() {
             if(!isHR) {
@@ -922,12 +926,12 @@
                 return;
             }
 
-            // 获取筛选条件
             const filterDept = document.getElementById('exportDept').value;
+            const filterNameOrId = document.getElementById('exportNameOrId').value.trim().toLowerCase();
             const filterMonth = document.getElementById('exportMonth').value;
             const filterYear = document.getElementById('exportYear').value.trim();
 
-            let csvContent = "\uFEFF"; // UTF-8 BOM
+            let csvContent = "\uFEFF"; // UTF-8 BOM 确保中文马来文不乱码
             const headers = [
                 "Dept / 部门", 
                 "Name / 姓名", 
@@ -949,6 +953,13 @@
                 // 部门筛选
                 if (filterDept && r.dept !== filterDept) match = false;
                 
+                // 名字或工号筛选
+                if (filterNameOrId) {
+                    const matchName = (r.name || '').toLowerCase().includes(filterNameOrId);
+                    const matchId = (r.id || '').toLowerCase().includes(filterNameOrId);
+                    if (!matchName && !matchId) match = false;
+                }
+
                 // 年份与月份筛选 (根据日期格式 YYYY-MM-DD)
                 if (r.date) {
                     const dateParts = r.date.split('-');
@@ -982,7 +993,6 @@
                 return;
             }
 
-            // 触发下载
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
