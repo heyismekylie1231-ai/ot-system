@@ -161,9 +161,14 @@
                         <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有加班记录与编辑)</h3>
                         <p class="text-xs text-slate-500">24/7 Live Sync across mobile & PC. Click Edit to change records anytime. (全天候 24 小时实时同步，支持随时修改编辑)。</p>
                     </div>
-                    <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-rotate"></i> Refresh Sync (刷新同步)
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="seedInitialData()" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-database"></i> 恢复图表历史数据 (Restore Image Data)
+                        </button>
+                        <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-rotate"></i> Refresh Sync (刷新同步)
+                        </button>
+                    </div>
                 </div>
 
                 <div id="submissionsTableContainer" class="overflow-x-auto custom-scrollbar">
@@ -173,7 +178,7 @@
                                 <th class="p-2 w-28">Dept / 部门</th>
                                 <th class="p-2 w-44">Name / 姓名</th>
                                 <th class="p-2 w-20">ID / 工号</th>
-                                <th class="p-2 w-32 cursor-pointer hover:text-blue-600" onclick="toggleSortOrder()">Date / 日期 <i class="fa-solid fa-sort"></i></th>
+                                <th class="p-2 w-32 cursor-pointer hover:text-blue-600">Date / 日期 <i class="fa-solid fa-arrow-down-wide-short text-blue-600"></i></th>
                                 <th class="p-2 w-36">Time / 时间</th>
                                 <th class="p-2 w-20 text-center">Hours / 时数</th>
                                 <th class="p-2">Reason / 原因</th>
@@ -182,7 +187,7 @@
                             </tr>
                         </thead>
                         <tbody id="submissionsTableBody" class="divide-y divide-slate-100">
-                            <!-- Injected Dynamically with Date Sorting -->
+                            <!-- Injected Dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -264,6 +269,13 @@
 
     <!-- SYSTEM SCRIPT -->
     <script>
+        // Firebase Config
+        const firebaseConfig = {
+            databaseURL: "https://ot-system-kaizen-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const deptMap = {
             "CAD": { hod: "CHAN KENG LEONG (ID: 2)", staff: [{ name: "CHAN KENG LEONG", id: "2" }, { name: "SOH GIM BOON", id: "274" }, { name: "ADARSH DAMODARAN", id: "305" }] },
             "CAM": { hod: "CHAN KENG LEONG (ID: 2)", staff: [{ name: "CHAN KENG LEONG", id: "2" }, { name: "HAN AYE", id: "28" }, { name: "MD KANCHAN", id: "60" }, { name: "KHAU LIANG YU", id: "269" }, { name: "NAY MYO ZAW", id: "300" }, { name: "MA LIK CHAN", id: "307" }] },
@@ -278,6 +290,117 @@
             "ADMIN_HR": { hod: "KALAISELVI A/P SOORIAMOORTHY (ID: 108)", staff: [{ name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" }, { name: "KISTINNA ANAQIN", id: "316" }, { name: "TAN KYLE", id: "328" }] },
             "PURCHASING": { hod: "KALAISELVI A/P SOORIAMOORTHY (ID: 108)", staff: [{ name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" }, { name: "THILAGAH A/P KRISHNAN", id: "212" }] }
         };
+
+        // 圖片中的完整 93 筆歷史數據
+        const initialImageData = [
+            { dept: "PROJECT", name: "NUR SYAHIRAH BINTI MOHAMAD SHUKRI", empId: "262", date: "2026-09-21", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Mmr1927mould trial apm", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "72", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Welding hexagon", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "72", date: "2026-09-21", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Fitting 721", status: "APPROVED" },
+            { dept: "EDM", name: "KAYW ZIN HEIN", empId: "306", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "722 cav", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD SHAHA BUDIN", empId: "20", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "718 core", status: "APPROVED" },
+            { dept: "POLISHING", name: "MIN THU", empId: "299", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "", status: "APPROVED" },
+            { dept: "CAD", name: "ADARSH DAMODARAN", empId: "305", date: "2026-09-21", startTime: "17:00", endTime: "19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA DHAN BAHADUR", empId: "291", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL721", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA MILAN", empId: "294", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL721", status: "APPROVED" },
+            { dept: "CNC", name: "SA MASAN BA", empId: "27", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722", status: "APPROVED" },
+            { dept: "POLISHING", name: "MD SHOPON", empId: "19", date: "2026-09-21", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Mold 229&721cav", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-21", startTime: "17:00", endTime: "19:00", hours: "2", reason: "721fitting", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "HING YONG HOW", empId: "286", date: "2026-09-21", startTime: "17:00", endTime: "19:00", hours: "2", reason: "721fitting", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD ALAMGIR", empId: "068", date: "2026-09-20", startTime: "08:00", endTime: "05:00", hours: "21", reason: "Lifter 721", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA MILAN", empId: "294", date: "2026-09-19", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA DHAN BAHADUR", empId: "291", date: "2026-09-19", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL721", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA MILAN", empId: "294", date: "2026-09-19", startTime: "08:00", endTime: "17:00", hours: "9", reason: "HIL721", status: "APPROVED" },
+            { dept: "CNC", name: "SA MASAN BA", empId: "027", date: "2026-09-19", startTime: "08:00", endTime: "17:00", hours: "9", reason: "HIL722", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-20", startTime: "16:00", endTime: "00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-20", startTime: "16:00", endTime: "00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-20", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-20", startTime: "04:00", endTime: "06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-20", startTime: "04:00", endTime: "06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-20", startTime: "04:00", endTime: "06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD SHAHA BUDIN", empId: "020", date: "2026-09-20", startTime: "08:00", endTime: "05:00", hours: "21", reason: "718 core", status: "APPROVED" },
+            { dept: "POLISHING", name: "MIN THU", empId: "299", date: "2026-09-20", startTime: "08:00", endTime: "05:00", hours: "21", reason: "718core&lifter 721", status: "APPROVED" },
+            { dept: "POLISHING", name: "MD SHOPON", empId: "019", date: "2026-09-20", startTime: "08:00", endTime: "05:00", hours: "21", reason: "229&722cav", status: "APPROVED" },
+            { dept: "EDM", name: "KAYW ZIN HEIN", empId: "306", date: "2026-09-20", startTime: "08:00", endTime: "05:00", hours: "21", reason: "722 cav", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD ALAMGIR", empId: "068", date: "2026-09-18", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Pns635fp", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD SHAHA BUDIN", empId: "020", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Ka2 718", status: "APPROVED" },
+            { dept: "POLISHING", name: "MIN THU", empId: "299", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "721 cr01", status: "APPROVED" },
+            { dept: "POLISHING", name: "MD SHOPON", empId: "019", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Hexagon 229", status: "APPROVED" },
+            { dept: "POLISHING", name: "MD SHOPON", empId: "019", date: "2026-09-18", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED" },
+            { dept: "POLISHING", name: "CHONG FAT KEONG", empId: "003", date: "2026-09-18", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA DHAN BAHADUR", empId: "291", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA MILAN", empId: "294", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL721", status: "APPROVED" },
+            { dept: "CNC", name: "SA MASAN BA", empId: "027", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722", status: "APPROVED" },
+            { dept: "CAD", name: "SOH GIM BOON", empId: "274", date: "2026-09-18", startTime: "17:00", endTime: "19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER RR ASSY R-L-DFM", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-19", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-19", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1927, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-19", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", empId: "310", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-18", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould mmr1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", empId: "326", date: "2026-09-18", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "HING YONG HOW", empId: "286", date: "2026-09-18", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "LEE YOONG HON", empId: "015", date: "2026-09-18", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED" },
+            { dept: "POLISHING", name: "MIN THU", empId: "299", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "721 cr 01", status: "APPROVED" },
+            { dept: "CNC", name: "BOHARA MILAN", empId: "294", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "MMR1898 CRS", status: "APPROVED" },
+            { dept: "CNC", name: "BHARAT BOHARA", empId: "290", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722 CAV", status: "APPROVED" },
+            { dept: "CNC", name: "SA MASAN BA", empId: "027", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "MMR1927 CAV", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-18", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-18", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-18", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", empId: "310", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "072", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", empId: "326", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "HING YONG HOW", empId: "286", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "LEE YOONG HON", empId: "015", date: "2026-09-17", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mould MMR 1928, 1808, 1927", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", empId: "310", date: "2026-09-16", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Repair mold MMR 1928", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-16", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Repair mold MMR 1928", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "072", date: "2026-09-16", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR 1928", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-16", startTime: "19:00", endTime: "08:00", hours: "13", reason: "Repair mold MMR 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-16", startTime: "19:00", endTime: "08:00", hours: "13", reason: "Repair mold MMR 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-16", startTime: "19:00", endTime: "08:00", hours: "13", reason: "Repair mold MMR 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", empId: "310", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "072", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", empId: "326", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "HING YONG HOW", empId: "286", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "LEE YOONG HON", empId: "015", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Repair mold 1927,1928,1808", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "SHAING THU AUNG", empId: "301", date: "2026-09-15", startTime: "08:00", endTime: "17:00", hours: "9", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD ALAMGIR", empId: "068", date: "2026-09-15", startTime: "05:00", endTime: "07:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD SHAHA BUDIN", empId: "020", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "CHONG FAT KEONG", empId: "003", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "SHAING THU AUNG", empId: "301", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD ALAMGIR", empId: "068", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "MD SHAHA BUDIN", empId: "020", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "PRODUCTION", name: "CHONG FAT KEONG", empId: "003", date: "2026-09-15", startTime: "18:00", endTime: "20:00", hours: "2", reason: "Kz722", status: "APPROVED" },
+            { dept: "EDM", name: "KAYW ZIN HEIN", empId: "306", date: "2026-09-15", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Hif721 lifter", status: "APPROVED" },
+            { dept: "POLISHING", name: "MIN THU", empId: "299", date: "2026-09-15", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Hexagon mold247", status: "APPROVED" },
+            { dept: "POLISHING", name: "MD SHOPON", empId: "019", date: "2026-09-15", startTime: "17:00", endTime: "19:00", hours: "2", reason: "Hexagon mold229", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", empId: "311", date: "2026-09-16", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", empId: "319", date: "2026-09-16", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHIR", empId: "069", date: "2026-09-16", startTime: "04:00", endTime: "08:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", empId: "310", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", empId: "303", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", empId: "326", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", empId: "072", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "HING YONG HOW", empId: "286", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "MOULD_MAKER", name: "LEE YOONG HON", empId: "015", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "Repair mold MMR, 1927, 1928, 1808", status: "APPROVED" },
+            { dept: "CNC", name: "BHARAT BOHARA", empId: "290", date: "2026-09-16", startTime: "08:00", endTime: "17:00", hours: "9", reason: "HIL722", status: "APPROVED" },
+            { dept: "CNC", name: "BHARAT BOHARA", empId: "290", date: "2026-09-15", startTime: "17:00", endTime: "21:00", hours: "4", reason: "HIL722", status: "APPROVED" }
+        ];
+
+        // 自動將圖片歷史資料寫入 Firebase（如果尚無資料）
+        function seedInitialData() {
+            db.ref('ot_records').once('value', snapshot => {
+                if (!snapshot.exists() || confirm("是否要強制重新匯入圖片中的 93 筆歷史數據？")) {
+                    initialImageData.forEach(record => {
+                        db.ref('ot_records').push({ ...record, timestamp: Date.now() });
+                    });
+                    alert("圖片中的 93 筆歷史數據已成功匯入 Firebase 資料庫！");
+                    fetchRecords();
+                }
+            });
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -299,42 +422,49 @@
 
         function handleDepartmentChange() {
             const dept = document.getElementById('departmentSelect').value;
-            document.getElementById('currentDeptDisplay').innerText = document.getElementById('departmentSelect').options[document.getElementById('departmentSelectselectedIndex') || document.getElementById('departmentSelect').selectedIndex].text;
+            document.getElementById('currentDeptDisplay').innerText = document.getElementById('departmentSelect').options[document.getElementById('departmentSelect').selectedIndex].text;
             document.getElementById('currentHODDisplay').innerText = deptMap[dept] ? deptMap[dept].hod : '-';
         }
 
-        // 預設開始時間改為下午 5:00 (17:00)
-        function addNewRow() {
+        // 新增行：開始時間自動設為 17:00 (下午5点)
+        function addNewRow(customData = null) {
             const tbody = document.getElementById('otTableBody');
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" placeholder="Name"></td>` +
-                           `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" placeholder="ID"></td>` +
-                           `<td class="p-2"><input type="date" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${new Date().toISOString().split('T')[0]}"></td>` +
-                           `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="17:00"></td>` +
-                           `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="21:00"></td>` +
-                           `<td class="p-2"><input type="number" step="0.5" class="w-full bg-slate-50 border rounded p-1 text-xs" value="4.0"></td>` +
-                           `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" placeholder="Reason"></td>` +
+            
+            const name = customData ? customData.name : '';
+            const id = customData ? customData.id : '';
+            const date = customData ? customData.date : new Date().toISOString().split('T')[0];
+            const startTime = customData ? customData.startTime : '17:00'; 
+            const endTime = customData ? customData.endTime : '21:00';
+            const hours = customData ? customData.hours : '4.0';
+            const reason = customData ? customData.reason : '';
+
+            tr.innerHTML = `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${name}" placeholder="Name"></td>` +
+                           `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${id}" placeholder="ID"></td>` +
+                           `<td class="p-2"><input type="date" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${date}"></td>` +
+                           `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${startTime}"></td>` +
+                           `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${endTime}"></td>` +
+                           `<td class="p-2"><input type="number" step="0.5" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${hours}"></td>` +
+                           `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${reason}" placeholder="Reason"></td>` +
                            `<td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td>`;
             tbody.appendChild(tr);
         }
 
-        // 載入全員時，開始時間自動設定為 17:00
         function loadWholeTeam() {
             const dept = document.getElementById('departmentSelect').value;
             const staffList = deptMap[dept]?.staff || [];
             const tbody = document.getElementById('otTableBody');
             tbody.innerHTML = '';
             staffList.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${s.name}"></td>` +
-                               `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${s.id}"></td>` +
-                               `<td class="p-2"><input type="date" class="w-full bg-slate-50 border rounded p-1 text-xs" value="${new Date().toISOString().split('T')[0]}"></td>` +
-                               `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="17:00"></td>` +
-                               `<td class="p-2"><input type="time" class="w-full bg-slate-50 border rounded p-1 text-xs" value="21:00"></td>` +
-                               `<td class="p-2"><input type="number" step="0.5" class="w-full bg-slate-50 border rounded p-1 text-xs" value="4.0"></td>` +
-                               `<td class="p-2"><input type="text" class="w-full bg-slate-50 border rounded p-1 text-xs" placeholder="Reason"></td>` +
-                               `<td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td>`;
-                tbody.appendChild(tr);
+                addNewRow({
+                    name: s.name,
+                    id: s.id,
+                    date: new Date().toISOString().split('T')[0],
+                    startTime: "17:00",
+                    endTime: "21:00",
+                    hours: "4.0",
+                    reason: ""
+                });
             });
         }
 
@@ -349,22 +479,115 @@
             }
         }
 
-        // 渲染記錄時自動按日期順序排列（從小到大 / 由舊到新）
+        // 從 Firebase 獲取記錄並自動按日期從小到大排序 (升序)
         function fetchRecords() {
-            // 這裡抓取並排序資料（預設從小到大排序）
-            // 系統會自動根據記錄中的 date 欄位進行升序 (ascending) 排列
+            db.ref('ot_records').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('submissionsTableBody');
+                const hrTbody = document.getElementById('hrRecordsTableBody');
+                tbody.innerHTML = '';
+                hrTbody.innerHTML = '';
+
+                if (!data) {
+                    // 如果資料庫完全空自動填入圖片歷史數據
+                    seedInitialData();
+                    return;
+                }
+
+                let records = [];
+                Object.keys(data).forEach(key => {
+                    records.push({ id: key, ...data[key] });
+                });
+
+                // 按日期从小到大排序 (Date Ascending)
+                records.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                records.forEach(r => {
+                    const statusBadge = r.status === 'APPROVED' 
+                        ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold text-[10px]">APPROVED</span>`
+                        : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">PENDING</span>`;
+
+                    const rowHtml = `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2 font-semibold text-slate-700">${r.dept}</td>
+                            <td class="p-2 font-bold text-slate-900">${r.name}</td>
+                            <td class="p-2 text-slate-600">${r.empId}</td>
+                            <td class="p-2 text-slate-700">${r.date}</td>
+                            <td class="p-2 text-slate-600">${r.startTime} - ${r.endTime}</td>
+                            <td class="p-2 text-center font-bold text-blue-700">${r.hours}h</td>
+                            <td class="p-2 text-slate-600 truncate max-w-xs">${r.reason || '-'}</td>
+                            <td class="p-2">${statusBadge}</td>
+                            <td class="p-2 text-center space-x-1">
+                                <button onclick="editRecord('${r.id}', '${r.dept}', '${r.name}', '${r.empId}', '${r.date}', '${r.startTime}', '${r.endTime}', '${r.hours}', '${r.reason}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded text-[11px] font-bold">Edit</button>
+                                <button onclick="deleteRecord('${r.id}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += rowHtml;
+                    hrTbody.innerHTML += rowHtml;
+                });
+            });
         }
 
         function submitOT(status) {
-            alert(`OT Saved with status: ${status}`);
+            const rows = document.querySelectorAll('#otTableBody tr');
+            const dept = document.getElementById('departmentSelect').value;
+            
+            if (rows.length === 0) {
+                alert("Please add at least one OT entry.");
+                return;
+            }
+
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const record = {
+                    dept: dept,
+                    name: inputs[0].value,
+                    empId: inputs[1].value,
+                    date: inputs[2].value,
+                    startTime: inputs[3].value,
+                    endTime: inputs[4].value,
+                    hours: inputs[5].value,
+                    reason: inputs[6].value,
+                    status: status,
+                    timestamp: Date.now()
+                };
+
+                if (record.name) {
+                    db.ref('ot_records').push(record);
+                }
+            });
+
+            alert(`OT records saved successfully as ${status}!`);
+            switchTab('mySubmissions');
+        }
+
+        function editRecord(id, dept, name, empId, date, startTime, endTime, hours, reason) {
+            document.getElementById('departmentSelect').value = dept;
+            handleDepartmentChange();
+            switchTab('submit');
+            
+            const tbody = document.getElementById('otTableBody');
+            tbody.innerHTML = '';
+            addNewRow({ name, id: empId, date, startTime, endTime, hours, reason });
+            
+            db.ref('ot_records/' + id).remove();
+            alert("Record loaded into form for editing. Make your changes and click submit.");
+        }
+
+        function deleteRecord(id) {
+            if (confirm("Are you sure you want to delete this record?")) {
+                db.ref('ot_records/' + id).remove();
+            }
         }
 
         function deleteFilteredData() {
-            alert("Filtered records deleted successfully.");
+            alert("Use individual delete or contact HR admin.");
         }
 
         window.onload = () => {
             addNewRow();
+            fetchRecords();
         };
     </script>
 </body>
