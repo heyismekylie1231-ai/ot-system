@@ -8,6 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -37,17 +41,17 @@
                 <h1 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-industry text-blue-800"></i> Kaizen Mould Technology Sdn. Bhd.
                 </h1>
-                <p class="text-xs text-slate-500 font-medium">Daily Overtime Management System • 94 Verified Records Loaded[cite: 2]</p>
+                <p class="text-xs text-slate-500 font-medium">Daily Overtime Management System • 24/7 Live Sync & Tracking (24小时实时同步系统)</p>
             </div>
 
             <div class="flex items-center gap-3">
                 <div class="bg-slate-100 border border-slate-200 rounded-lg p-1.5 flex items-center gap-2 text-xs font-semibold">
-                    <span class="text-slate-500">Access Mode:</span>
-                    <span id="accessModeBadge" class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">PUBLIC / STAFF VIEW (全员公开模式)</span>
+                    <span class="text-slate-500">Access / Status:</span>
+                    <span id="accessModeBadge" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">STAFF MODE (员工模式)</span>
                 </div>
 
                 <button id="hrLoginBtn" onclick="toggleHRLoginModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-amber-400"></i> <span id="hrLoginBtnText">HR Login (HR 专属登录)</span>
+                    <i class="fa-solid fa-lock text-amber-400"></i> <span id="hrLoginBtnText">HR Login (HR 登录)</span>
                 </button>
             </div>
         </div>
@@ -90,10 +94,10 @@
                     <i class="fa-solid fa-pen-to-square"></i> Submit OT / Hantar OT / 提交 OT
                 </button>
                 <button onclick="switchTab('mySubmissions')" id="tabBtnMySubmissions" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-user-clock"></i> View All Submissions / 查看所有员工记录
+                    <i class="fa-solid fa-user-clock"></i> View All Submissions / Ubah & Edit / 查看与修改记录
                 </button>
                 <button onclick="switchTab('hrArchive')" id="tabBtnHrArchive" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">🔒 HR Only (需密码)</span>
+                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">HR Only</span>
                 </button>
             </nav>
         </div>
@@ -106,7 +110,7 @@
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-blue-700"></i> Overtime Entry Form (加班表格)
                         </h2>
-                        <p class="text-xs text-slate-500">Default start time is 17:00 (下午5点). All submissions are instantly visible to everyone.</p>
+                        <p class="text-xs text-slate-500">Auto-memory active. Select staff or load entire department team automatically.</p>
                     </div>
                     <button onclick="loadWholeTeam()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                         <i class="fa-solid fa-bolt text-indigo-600"></i> ⚡ Auto-Load Team (载入全员)
@@ -120,7 +124,7 @@
                                 <th class="p-3 w-1/4">Name / Nama / 姓名</th>
                                 <th class="p-3 w-28">Emp ID / 工号</th>
                                 <th class="p-3 w-36">Date / Tarikh / 日期</th>
-                                <th class="p-3 w-28">Start / 开始 (默认17:00)</th>
+                                <th class="p-3 w-28">Start / 开始</th>
                                 <th class="p-3 w-28">End / 结束</th>
                                 <th class="p-3 w-20">Hours / 小时</th>
                                 <th class="p-3">Purpose & Reason / 原因用途</th>
@@ -149,25 +153,17 @@
             </div>
         </div>
 
-        <!-- VIEW ALL SUBMISSIONS TAB (PUBLIC FOR EVERYONE) -->
+        <!-- VIEW ALL SUBMISSIONS TAB (WITH INLINE EDIT & SUBMIT OPTIONS) -->
         <div id="tabMySubmissions" class="tab-content hidden space-y-4">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有员工加班记录与日期正/逆序)</h3>
-                        <p class="text-xs text-slate-500">Accessible by all devices. Use sort buttons to order by date.</p>
+                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有加班记录与编辑)</h3>
+                        <p class="text-xs text-slate-500">24/7 Live Sync across mobile & PC. Click Edit to change records anytime. (全天候 24 小时实时同步，支持随时修改编辑)。</p>
                     </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <!-- 日期排序控制按钮 -->
-                        <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 text-xs">
-                            <span class="px-2 text-slate-500 font-bold">Date Sort:</span>
-                            <button onclick="setSortOrder('asc')" id="sortAscBtn" class="px-3 py-1 rounded font-bold text-slate-600 transition">正序 (旧 ➔ 新)</button>
-                            <button onclick="setSortOrder('desc')" id="sortDescBtn" class="px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition">逆序 (新 ➔ 旧)</button>
-                        </div>
-                        <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-rotate"></i> Refresh
-                        </button>
-                    </div>
+                    <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Refresh Sync (刷新同步)
+                    </button>
                 </div>
 
                 <div id="submissionsTableContainer" class="overflow-x-auto custom-scrollbar">
@@ -182,40 +178,113 @@
                                 <th class="p-2 w-20 text-center">Hours / 时数</th>
                                 <th class="p-2">Reason / 原因</th>
                                 <th class="p-2 w-24">Status / 状态</th>
-                                <th class="p-2 w-32 text-center">Submitted By</th>
+                                <th class="p-2 w-40 text-center">Actions / 操作 (Edit/Submit/Pending)</th>
                             </tr>
                         </thead>
                         <tbody id="submissionsTableBody" class="divide-y divide-slate-100">
+                            <!-- Injected Dynamically with Editable Inputs -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- HR ARCHIVE & DELETE CONTROLS TAB (PASSWORD PROTECTED) -->
+        <!-- HR ARCHIVE & DELETE CONTROLS TAB -->
         <div id="tabHrArchive" class="tab-content hidden space-y-6">
+            <!-- DELETE & FILTER CONTROL PANEL -->
             <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
                 <div class="flex items-center gap-2 text-rose-800 font-extrabold text-base mb-1">
-                    <i class="fa-solid fa-shield-halved"></i> HR Exclusive Management & Delete Center (HR 专属管理与删除中心)
+                    <i class="fa-solid fa-trash-can"></i> Advanced Data Delete Center (数据删除管理中心)
                 </div>
-                <p class="text-xs text-rose-600 mb-4">Only authorized HR personnel can access this section.</p>
+                <p class="text-xs text-rose-600 mb-4">Delete records by Department, Name, Emp ID, Year, Month or Exact Date. (可按部门、名字、工号、年份、月份或具体日期精确删除数据)。</p>
+
+                <!-- FILTER FORM FOR DELETE -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Dept / 部门</label>
+                        <select id="delDept" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                            <option value="">-- All / 所有部门 --</option>
+                            <option value="CAD">CAD</option>
+                            <option value="CAM">CAM</option>
+                            <option value="CNC">CNC</option>
+                            <option value="EDM">EDM</option>
+                            <option value="PROJECT">PROJECT</option>
+                            <option value="POLISHING">POLISHING</option>
+                            <option value="PRODUCTION">PRODUCTION</option>
+                            <option value="INJECTION_TRIAL">INJECTION TRIAL</option>
+                            <option value="MOULD_MAKER">MOULD MAKER</option>
+                            <option value="QC">QC</option>
+                            <option value="ADMIN_HR">ADMIN & HR</option>
+                            <option value="PURCHASING">PURCHASING</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Name / ID / 名字工号</label>
+                        <input type="text" id="delNameOrId" placeholder="Name or ID" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Year / 年份</label>
+                        <input type="number" id="delYear" placeholder="e.g. 2026" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Month / 月份</label>
+                        <select id="delMonth" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                            <option value="">-- All Months --</option>
+                            <option value="01">01 月</option>
+                            <option value="02">02 月</option>
+                            <option value="03">03 月</option>
+                            <option value="04">04 月</option>
+                            <option value="05">05 月</option>
+                            <option value="06">06 月</option>
+                            <option value="07">07 月</option>
+                            <option value="08">08 月</option>
+                            <option value="09">09 月</option>
+                            <option value="10">10 月</option>
+                            <option value="11">11 月</option>
+                            <option value="12">12 月</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Exact Date / 具体日期</label>
+                        <input type="date" id="delSpecificDate" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                    </div>
+
+                    <div class="flex items-end">
+                        <button onclick="deleteFilteredData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2 px-3 rounded shadow transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Delete Match (条件删除)
+                        </button>
+                    </div>
+                </div>
 
                 <div class="pt-3 border-t border-rose-200 flex justify-between items-center flex-wrap gap-2">
-                    <span class="text-xs font-bold text-rose-800">⚠️ Danger Zone:</span>
+                    <span class="text-xs font-bold text-rose-800">⚠️ Danger Zone (危险区域):</span>
                     <button onclick="clearAllData()" class="bg-red-800 hover:bg-red-900 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition flex items-center gap-1">
-                        <i class="fa-solid fa-skull-crossbones"></i> Clear All Records (清空所有记录)
+                        <i class="fa-solid fa-skull-crossbones"></i> Delete All Records (一键彻底清空数据库)
                     </button>
                 </div>
             </div>
 
+            <!-- HR VIEW TABLE & EXPORT REPORT BAR -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor & Deletion</h3>
+                        <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor (HR 24小时实时接收数据中心)</h3>
+                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可直接导出为 Excel 报表作算薪与考勤归档)。</p>
                     </div>
-                    <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-rotate"></i> Refresh
-                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <!-- EXPORT TO EXCEL BUTTON -->
+                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-sm"></i> Export to Excel / Muat Turun Excel / 导出 Excel 报表
+                        </button>
+                        <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -230,7 +299,7 @@
                                 <th class="p-2">Hours</th>
                                 <th class="p-2">Reason</th>
                                 <th class="p-2">Status</th>
-                                <th class="p-2 text-center">Delete Action</th>
+                                <th class="p-2 text-center">Delete</th>
                             </tr>
                         </thead>
                         <tbody id="hrRecordsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -243,11 +312,12 @@
 
     <!-- SYSTEM SCRIPT -->
     <script>
+        // HOD 名字与工号已全部加入到各自部门的员工下拉选择列表中
         const deptMap = {
             "CAD": { 
                 hod: "CHAN KENG LEONG (ID: 2)", 
                 staff: [
-                    { name: "CHAN KENG LEONG", id: "2" },
+                    { name: "CHAN KENG LEONG", id: "2" }, // HOD
                     { name: "SOH GIM BOON", id: "274" }, 
                     { name: "ADARSH DAMODARAN", id: "305" }
                 ] 
@@ -255,7 +325,7 @@
             "CAM": { 
                 hod: "CHAN KENG LEONG (ID: 2)", 
                 staff: [
-                    { name: "CHAN KENG LEONG", id: "2" },
+                    { name: "CHAN KENG LEONG", id: "2" }, // HOD
                     { name: "HAN AYE", id: "28" }, 
                     { name: "MD KANCHAN", id: "60" }, 
                     { name: "KHAU LIANG YU", id: "269" }, 
@@ -266,7 +336,7 @@
             "CNC": { 
                 hod: "CHAN KENG LEONG (ID: 2)", 
                 staff: [
-                    { name: "CHAN KENG LEONG", id: "2" },
+                    { name: "CHAN KENG LEONG", id: "2" }, // HOD
                     { name: "SA MASAN BA", id: "27" }, 
                     { name: "BHARAT BOHARA", id: "290" }, 
                     { name: "BOHARA DHAN BAHADUR", id: "291" }, 
@@ -277,7 +347,7 @@
             "EDM": { 
                 hod: "CHONG FAT KEONG (ID: 3)", 
                 staff: [
-                    { name: "CHONG FAT KEONG", id: "3" },
+                    { name: "CHONG FAT KEONG", id: "3" }, // HOD
                     { name: "TEE NYEIN AUNG", id: "302" }, 
                     { name: "KAYW ZIN HEIN", id: "306" }, 
                     { name: "JOSHWIN SANTHOSH POILIL THAZHATH", id: "309" }, 
@@ -287,7 +357,7 @@
             "PROJECT": { 
                 hod: "CHONG FAT KEONG (ID: 3)", 
                 staff: [
-                    { name: "CHONG FAT KEONG", id: "3" },
+                    { name: "CHONG FAT KEONG", id: "3" }, // HOD
                     { name: "MUHAMMAD ZAINULARIFF BIN MD KHAIRUL", id: "257" }, 
                     { name: "NUR SYAHIRAH BINTI MOHAMAD SHUKRI", id: "262" }
                 ] 
@@ -295,7 +365,7 @@
             "POLISHING": { 
                 hod: "CHONG FAT KEONG (ID: 3)", 
                 staff: [
-                    { name: "CHONG FAT KEONG", id: "3" },
+                    { name: "CHONG FAT KEONG", id: "3" }, // HOD
                     { name: "MD SHOPON", id: "19" }, 
                     { name: "MIN THU", id: "299" }
                 ] 
@@ -303,7 +373,7 @@
             "PRODUCTION": { 
                 hod: "CHONG FAT KEONG (ID: 3)", 
                 staff: [
-                    { name: "CHONG FAT KEONG", id: "3" },
+                    { name: "CHONG FAT KEONG", id: "3" }, // HOD
                     { name: "MD SHAHA BUDIN", id: "20" }, 
                     { name: "MD ALAMGIR", id: "68" }, 
                     { name: "SHAING THU AUNG", id: "301" }
@@ -312,14 +382,14 @@
             "INJECTION_TRIAL": { 
                 hod: "CHONG FAT KEONG (ID: 3)", 
                 staff: [
-                    { name: "CHONG FAT KEONG", id: "3" },
+                    { name: "CHONG FAT KEONG", id: "3" }, // HOD
                     { name: "MAHAJI", id: "329" }
                 ] 
             },
             "MOULD_MAKER": { 
                 hod: "LEE YOONG HON (ID: 15)", 
                 staff: [
-                    { name: "LEE YOONG HON", id: "15" },
+                    { name: "LEE YOONG HON", id: "15" }, // HOD
                     { name: "MD JAHIR", id: "69" }, 
                     { name: "MD JAHANGIR ALAM", id: "72" }, 
                     { name: "HING YONG HOW", id: "286" }, 
@@ -334,14 +404,14 @@
             "QC": { 
                 hod: "TAN KAH CHYE (ID: 266)", 
                 staff: [
-                    { name: "TAN KAH CHYE", id: "266" },
+                    { name: "TAN KAH CHYE", id: "266" }, // HOD
                     { name: "NUR LIANASOFIA PUTRI BINTI KATENI", id: "323" }
                 ] 
             },
             "ADMIN_HR": { 
                 hod: "KALAISELVI A/P SOORIAMOORTHY (ID: 108)", 
                 staff: [
-                    { name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" },
+                    { name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" }, // HOD
                     { name: "KISTINNA ANAQIN", id: "316" }, 
                     { name: "TAN KYLE", id: "328" }
                 ] 
@@ -349,357 +419,437 @@
             "PURCHASING": { 
                 hod: "KALAISELVI A/P SOORIAMOORTHY (ID: 108)", 
                 staff: [
-                    { name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" },
+                    { name: "KALAISELVI A/P SOORIAMOORTHY", id: "108" }, // HOD
                     { name: "THILAGAH A/P KRISHNAN", id: "212" }
                 ] 
             }
         };
 
-        // 一字不漏完整收录图片中的全部 94 条历史记录[cite: 2]
-        const defaultRecords = {
-            "rec_01": { dept: "PROJECT", name: "NUR SYAHIRAH BINTI MOHAMAD SHUKRI", id: "262", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "Mmr1927mold trial apm", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_02": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "Welding hexegon", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_03": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-21", time: "18:00 - 20:00", hours: "2", reason: "Fitting 721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_04": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "722 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_05": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "718 core", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_06": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "721 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_07": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_08": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_09": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_10": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_11": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "Mold 229&721cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_12": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "721fitting", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_13": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "721fitting", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_14": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "Lifter 721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_15": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-19", time: "17:00 - 21:00", hours: "4", reason: "Hil722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_16": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_17": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_18": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_19": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "16:00 - 00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_20": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "16:00 - 00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_21": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_22": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_23": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_24": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_25": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "718 core", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_26": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "718core&lifter721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_27": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "229&722cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_28": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "722 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_29": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Pns635fp", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_30": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Kas 718", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_31": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "721 cr01", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_32": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_33": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "18:00 - 20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_34": { dept: "POLISHING", name: "CHONG FAT KEONG", id: "3", date: "2026-09-18", time: "18:00 - 20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_35": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_36": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_37": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_38": { dept: "CAD", name: "SOH GIM BOON", id: "274", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER RR ASSY R-L-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_39": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_40": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_41": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_42": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_43": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_44": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_45": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_46": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_47": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_48": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "721 cr 01", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_49": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "MMR1898 CRS", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_50": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "HIL722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_51": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "MMR1927 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_52": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_53": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_54": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_55": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_56": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_57": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_58": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_59": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_60": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_61": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-16", time: "17:00 - 19:00", hours: "2", reason: "Repair mould MMR 1928", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_62": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-16", time: "17:00 - 19:00", hours: "2", reason: "Repair mould MMR 1928", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_63": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_64": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-16", time: "19:00 - 08:00", hours: "13", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_65": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-16", time: "19:00 - 08:00", hours: "13", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_66": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-16", time: "19:00 - 08:00", hours: "13", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_67": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_68": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_69": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_70": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_71": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_72": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_73": { dept: "PRODUCTION", name: "SHAING THU AUNG", id: "301", date: "2026-09-15", time: "08:00 - 17:00", hours: "9", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_74": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-15", time: "05:00 - 07:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_75": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_76": { dept: "PRODUCTION", name: "CHONG FAT KEONG", id: "3", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_77": { dept: "PRODUCTION", name: "SHAING THU AUNG", id: "301", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_78": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_79": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_80": { dept: "PRODUCTION", name: "CHONG FAT KEONG", id: "3", date: "2026-09-15", time: "18:00 - 20:00", hours: "2", reason: "Kz722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_81": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-15", time: "17:00 - 19:00", hours: "2", reason: "Hil721 lifter", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_82": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-15", time: "17:00 - 19:00", hours: "2", reason: "Hexagon mold247", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_83": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-15", time: "17:00 - 19:00", hours: "2", reason: "Hexagon mold229", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_84": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-16", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_85": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-16", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_86": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-16", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_87": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_88": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_89": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_90": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_91": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_92": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_93": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-16", time: "08:00 - 17:00", hours: "9", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_94": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" }
+        let isHR = false;
+        let db = null;
+
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyCHOFXk24RMB3vVyGIV1BIm-hTr9fgjmPM",
+            authDomain: "kaizen-ot.firebaseapp.com",
+            databaseURL: "https://kaizen-ot-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kaizen-ot",
+            storageBucket: "kaizen-ot.firebasestorage.app",
+            messagingSenderId: "9111966135",
+            appId: "1:9111966135:web:330a378c37f2cffe941832"
         };
 
-        let currentSortOrder = 'desc'; // 默认新 ➔ 旧
-        let localRecords = {};
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('kaizen_ot_records_all_v3');
-            if (saved) {
-                try {
-                    localRecords = JSON.parse(saved);
-                } catch(e) {
-                    localRecords = defaultRecords;
+        window.onload = function() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(defaultFirebaseConfig);
                 }
-            } else {
-                localRecords = defaultRecords;
-                localStorage.setItem('kaizen_ot_records_all_v3', JSON.stringify(defaultRecords));
-            }
+                db = firebase.database();
+                
+                // Realtime Listener to ensure HR side updates automatically 24/7
+                db.ref('ot_records').on('value', () => {
+                    fetchRecords();
+                });
+            } catch(e) { console.log(e); }
 
-            addNewRow(true);
-            renderRecordsTables();
-        });
+            handleDepartmentChange();
+            addNewRow(false);
+        };
 
-        function setSortOrder(order) {
-            currentSortOrder = order;
-            if (order === 'asc') {
-                document.getElementById('sortAscBtn').className = "px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition";
-                document.getElementById('sortDescBtn').className = "px-3 py-1 rounded font-bold text-slate-600 transition";
-            } else {
-                document.getElementById('sortDescBtn').className = "px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition";
-                document.getElementById('sortAscBtn').className = "px-3 py-1 rounded font-bold text-slate-600 transition";
-            }
-            renderRecordsTables();
+        function handleDepartmentChange() {
+            const deptKey = document.getElementById('departmentSelect').value;
+            const data = deptMap[deptKey] || { hod: "-", staff: [] };
+            document.getElementById('currentDeptDisplay').innerText = deptKey.replace('_', ' ') + ' DEPARTMENT';
+            document.getElementById('currentHODDisplay').innerText = data.hod || '-';
+
+            document.getElementById('otTableBody').innerHTML = '';
+            addNewRow(false);
         }
 
-        function renderRecordsTables() {
-            const tbody = document.getElementById('submissionsTableBody');
-            const hrTbody = document.getElementById('hrRecordsTableBody');
-            if (tbody) tbody.innerHTML = "";
-            if (hrTbody) hrTbody.innerHTML = "";
-
-            let recordsArray = Object.keys(localRecords).map(key => {
-                return { recordKey: key, ...localRecords[key] };
+        function getStaffOptions(selectedDeptKey) {
+            const staffList = deptMap[selectedDeptKey]?.staff || [];
+            let options = '<option value="">-- Select Employee / 选择员工 --</option>';
+            staffList.forEach(s => {
+                options += `<option value="${s.name}" data-id="${s.id}">${s.name} (ID: ${s.id})</option>`;
             });
+            return options;
+        }
 
-            // 按日期排序 (asc: 旧 ➔ 新, desc: 新 ➔ 旧)
-            recordsArray.sort((a, b) => {
-                let dateA = new Date(a.date || '2026-01-01');
-                let dateB = new Date(b.date || '2026-01-01');
-                if (currentSortOrder === 'asc') {
-                    return dateA - dateB;
-                } else {
-                    return dateB - dateA;
-                }
-            });
+        function addNewRow(duplicatePrevious = false) {
+            const tbody = document.getElementById('otTableBody');
+            const deptKey = document.getElementById('departmentSelect').value;
+            const rowId = 'row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            const today = new Date().toISOString().split('T')[0];
 
-            recordsArray.forEach(rec => {
-                if (tbody) {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition";
-                    tr.innerHTML = `
-                        <td class="p-2 font-semibold">${rec.dept || ''}</td>
-                        <td class="p-2 font-bold">${rec.name || ''}</td>
-                        <td class="p-2">${rec.id || ''}</td>
-                        <td class="p-2">${rec.date || ''}</td>
-                        <td class="p-2">${rec.time || ''}</td>
-                        <td class="p-2 text-center font-bold text-blue-700">${rec.hours || ''}</td>
-                        <td class="p-2">${rec.reason || ''}</td>
-                        <td class="p-2"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-extrabold">${rec.status || 'APPROVED'}</span></td>
-                        <td class="p-2 text-center text-slate-500 text-[11px]">${rec.submittedBy || 'Staff'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                }
+            let defaultVal = { name: '', id: '', date: today, start: '18:00', end: '20:00', hours: '2.0', reason: '' };
 
-                if (hrTbody) {
-                    const tr2 = document.createElement('tr');
-                    tr2.className = "hover:bg-rose-50/50 transition";
-                    tr2.innerHTML = `
-                        <td class="p-2 font-semibold">${rec.dept || ''}</td>
-                        <td class="p-2 font-bold">${rec.name || ''}</td>
-                        <td class="p-2">${rec.id || ''}</td>
-                        <td class="p-2">${rec.date || ''}</td>
-                        <td class="p-2">${rec.time || ''}</td>
-                        <td class="p-2 text-center font-bold text-blue-700">${rec.hours || ''}</td>
-                        <td class="p-2">${rec.reason || ''}</td>
-                        <td class="p-2"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-extrabold">${rec.status || 'APPROVED'}</span></td>
-                        <td class="p-2 text-center"><button onclick="deleteSingleRecord('${rec.recordKey}')" class="bg-rose-100 text-rose-700 hover:bg-rose-200 px-2.5 py-1 rounded font-bold text-xs"><i class="fa-solid fa-trash"></i> Delete</button></td>
-                    `;
-                    hrTbody.appendChild(tr2);
-                }
+            if (duplicatePrevious && tbody.children.length > 0) {
+                const lastRow = tbody.lastElementChild;
+                defaultVal = {
+                    name: lastRow.querySelector('.emp-name')?.value || '',
+                    id: lastRow.querySelector('.emp-id')?.value || '',
+                    date: lastRow.querySelector('.emp-date')?.value || today,
+                    start: lastRow.querySelector('.emp-start')?.value || '18:00',
+                    end: lastRow.querySelector('.emp-end')?.value || '20:00',
+                    hours: lastRow.querySelector('.emp-hours')?.value || '2.0',
+                    reason: lastRow.querySelector('.emp-reason')?.value || ''
+                };
+            }
+
+            const tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.className = "hover:bg-slate-50 transition";
+            tr.innerHTML = `
+                <td class="p-2">
+                    <select onchange="onEmployeeSelect(this, '${rowId}')" class="emp-name w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs font-semibold">
+                        ${getStaffOptions(deptKey)}
+                    </select>
+                </td>
+                <td class="p-2"><input type="text" class="emp-id w-full bg-slate-100 border border-slate-200 rounded p-1.5 text-xs font-bold text-slate-700 text-center" value="${defaultVal.id}" readonly placeholder="ID"></td>
+                <td class="p-2"><input type="date" class="emp-date w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.date}"></td>
+                <td class="p-2"><input type="time" class="emp-start w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.start}" onchange="calcHours('${rowId}')"></td>
+                <td class="p-2"><input type="time" class="emp-end w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.end}" onchange="calcHours('${rowId}')"></td>
+                <td class="p-2"><input type="text" class="emp-hours w-full bg-slate-100 border border-slate-200 rounded p-1.5 text-xs font-bold text-blue-700 text-center" value="${defaultVal.hours}" readonly></td>
+                <td class="p-2"><input type="text" class="emp-reason w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.reason}" placeholder="Reason / 原因用途"></td>
+                <td class="p-2 text-center"><button onclick="deleteRow('${rowId}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="fa-solid fa-xmark"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+
+            if(defaultVal.name) {
+                const selectEl = tr.querySelector('.emp-name');
+                selectEl.value = defaultVal.name;
+            }
+        }
+
+        function onEmployeeSelect(selectEl, rowId) {
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            const empId = selectedOption.getAttribute('data-id') || '';
+            const tr = document.getElementById(rowId);
+            if(tr) {
+                tr.querySelector('.emp-id').value = empId;
+            }
+        }
+
+        function deleteRow(rowId) {
+            const row = document.getElementById(rowId);
+            if(row) row.remove();
+        }
+
+        function calcHours(rowId) {
+            const tr = document.getElementById(rowId);
+            if(!tr) return;
+            const start = tr.querySelector('.emp-start').value;
+            const end = tr.querySelector('.emp-end').value;
+            if(start && end) {
+                const s = new Date(`1970-01-01T${start}:00`);
+                const e = new Date(`1970-01-01T${end}:00`);
+                let diff = (e - s) / (1000 * 60 * 60);
+                if(diff < 0) diff += 24;
+                tr.querySelector('.emp-hours').value = diff.toFixed(1);
+            }
+        }
+
+        function loadWholeTeam() {
+            const deptKey = document.getElementById('departmentSelect').value;
+            const staffList = deptMap[deptKey]?.staff || [];
+            if(staffList.length === 0) {
+                alert('No staff members registered under this department.');
+                return;
+            }
+            document.getElementById('otTableBody').innerHTML = '';
+            staffList.forEach(s => {
+                addNewRow(false);
+                const tbody = document.getElementById('otTableBody');
+                const lastRow = tbody.lastElementChild;
+                const selectEl = lastRow.querySelector('.emp-name');
+                selectEl.value = s.name;
+                lastRow.querySelector('.emp-id').value = s.id;
             });
         }
 
         function submitOT(status) {
+            if(!db) { alert('Database not initialized!'); return; }
+            const dept = document.getElementById('departmentSelect').value;
             const rows = document.querySelectorAll('#otTableBody tr');
-            if (rows.length === 0) {
-                alert("Please add at least one record! (请至少添加一条记录)");
-                return;
-            }
+            let dataArr = [];
 
-            let successCount = 0;
-            rows.forEach(tr => {
-                const name = tr.querySelector('.row-name').value;
-                const id = tr.querySelector('.row-id').value;
-                const date = tr.querySelector('.row-date').value;
-                const start = tr.querySelector('.row-start').value;
-                const end = tr.querySelector('.row-end').value;
-                const hours = tr.querySelector('.row-hours').value;
-                const reason = tr.querySelector('.row-reason').value;
-                const dept = document.getElementById('departmentSelect').value;
-
-                if (name && date) {
-                    const newKey = 'rec_new_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                    localRecords[newKey] = {
+            rows.forEach(r => {
+                const name = r.querySelector('.emp-name').value;
+                if(name) {
+                    dataArr.push({
                         dept: dept,
                         name: name,
-                        id: id,
-                        date: date,
-                        time: `${start} - ${end}`,
-                        hours: hours,
-                        reason: reason || "Overtime",
+                        empId: r.querySelector('.emp-id').value,
+                        date: r.querySelector('.emp-date').value,
+                        startTime: r.querySelector('.emp-start').value,
+                        endTime: r.querySelector('.emp-end').value,
+                        hours: r.querySelector('.emp-hours').value,
+                        reason: r.querySelector('.emp-reason').value,
                         status: status,
-                        submittedBy: name
-                    };
-                    successCount++;
+                        timestamp: Date.now()
+                    });
                 }
             });
 
-            if (successCount > 0) {
-                localStorage.setItem('kaizen_ot_records_all_v3', JSON.stringify(localRecords));
-                alert(`Successfully submitted ${successCount} record(s)! All devices can now view this.`);
-                document.getElementById('otTableBody').innerHTML = "";
-                addNewRow(true);
-                switchTab('mySubmissions');
-                renderRecordsTables();
+            if(dataArr.length === 0) { alert('Please select at least one employee.'); return; }
+
+            dataArr.forEach(item => db.ref('ot_records').push(item));
+            alert(`Submitted ${dataArr.length} record(s)! / 已成功提交记录到云端！`);
+            document.getElementById('otTableBody').innerHTML = '';
+            addNewRow(false);
+        }
+
+        // FETCH RECORDS WITH EDIT & INLINE SUBMIT/PENDING OPTIONS FOR ALL USERS
+        function fetchRecords() {
+            if(!db) return;
+            db.ref('ot_records').once('value', snapshot => {
+                const data = snapshot.val();
+                const subBody = document.getElementById('submissionsTableBody');
+                const hrBody = document.getElementById('hrRecordsTableBody');
+                if(subBody) subBody.innerHTML = '';
+                if(hrBody) hrBody.innerHTML = '';
+
+                if(!data) {
+                    if(subBody) subBody.innerHTML = '<tr><td colspan="9" class="p-3 text-center text-slate-400">No records found. / 暂无提交记录</td></tr>';
+                    if(hrBody) hrBody.innerHTML = '<tr><td colspan="9" class="p-3 text-center text-slate-400">No records found. / 暂无提交记录</td></tr>';
+                    return;
+                }
+
+                Object.entries(data).reverse().forEach(([key, item]) => {
+                    if(subBody) {
+                        const tr = document.createElement('tr');
+                        tr.id = `sub_row_${key}`;
+                        tr.className = "hover:bg-slate-50 transition";
+                        tr.innerHTML = `
+                            <td class="p-2 font-semibold text-slate-700">${item.dept}</td>
+                            <td class="p-2"><input type="text" id="edit_name_${key}" class="w-full bg-transparent border-none p-1 font-bold text-slate-800" value="${item.name}" readonly></td>
+                            <td class="p-2"><input type="text" id="edit_id_${key}" class="w-20 bg-transparent border-none p-1 text-slate-600" value="${item.empId}" readonly></td>
+                            <td class="p-2"><input type="date" id="edit_date_${key}" class="bg-transparent border-none p-1 text-slate-700" value="${item.date}" readonly></td>
+                            <td class="p-2 flex items-center gap-1">
+                                <input type="time" id="edit_start_${key}" class="bg-transparent border-none p-1" value="${item.startTime}" readonly>
+                                <span>-</span>
+                                <input type="time" id="edit_end_${key}" class="bg-transparent border-none p-1" value="${item.endTime}" readonly>
+                            </td>
+                            <td class="p-2 font-bold text-blue-600 text-center"><input type="text" id="edit_hours_${key}" class="w-12 text-center bg-transparent border-none font-bold text-blue-600" value="${item.hours}" readonly></td>
+                            <td class="p-2"><input type="text" id="edit_reason_${key}" class="w-full bg-transparent border-none p-1 text-slate-600" value="${item.reason || ''}" readonly></td>
+                            <td class="p-2">
+                                <span class="px-2 py-0.5 text-[10px] rounded font-bold ${item.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${item.status}</span>
+                            </td>
+                            <td class="p-2 text-center flex items-center justify-center gap-1">
+                                <button id="edit_btn_${key}" onclick="toggleInlineEdit('${key}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2 py-1 rounded">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </button>
+                                <button onclick="updateRecordStatus('${key}', 'PENDING')" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-[11px] font-bold px-2 py-1 rounded" title="Set PENDING">
+                                    Pending
+                                </button>
+                                <button onclick="updateRecordStatus('${key}', 'APPROVED')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold px-2 py-1 rounded" title="Submit/Approve">
+                                    Submit
+                                </button>
+                            </td>
+                        `;
+                        subBody.appendChild(tr);
+                    }
+
+                    if(hrBody) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="p-2 font-semibold text-slate-700">${item.dept}</td>
+                            <td class="p-2 font-bold">${item.name}</td>
+                            <td class="p-2">${item.empId}</td>
+                            <td class="p-2">${item.date}</td>
+                            <td class="p-2">${item.startTime} - ${item.endTime}</td>
+                            <td class="p-2 font-bold text-blue-600">${item.hours} hrs</td>
+                            <td class="p-2 text-slate-500">${item.reason || ''}</td>
+                            <td class="p-2"><span class="px-2 py-0.5 text-[10px] rounded font-bold ${item.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${item.status}</span></td>
+                            <td class="p-2 text-center">
+                                <button onclick="deleteSingleRecord('${key}')" class="text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1 rounded hover:bg-rose-50">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        hrBody.appendChild(tr);
+                    }
+                });
+            });
+        }
+
+        // EXPORT HR DATA TO EXCEL / CSV REPORT
+        function exportToExcel() {
+            if(!db) return;
+            db.ref('ot_records').once('value', snapshot => {
+                const data = snapshot.val();
+                if(!data) {
+                    alert('No OT records available to export! / 暂无任何加班数据可供导出！');
+                    return;
+                }
+
+                let csvContent = "\uFEFF"; // UTF-8 BOM
+                csvContent += "Department (部门),Employee Name (姓名),Employee ID (工号),Date (日期),Start Time (开始时间),End Time (结束时间),OT Hours (加班时数),Purpose & Reason (原因用途),Status (状态)\n";
+
+                Object.values(data).forEach(item => {
+                    const row = [
+                        `"${item.dept || ''}"`,
+                        `"${item.name || ''}"`,
+                        `"${item.empId || ''}"`,
+                        `"${item.date || ''}"`,
+                        `"${item.startTime || ''}"`,
+                        `"${item.endTime || ''}"`,
+                        `"${item.hours || '0'}"`,
+                        `"${(item.reason || '').replace(/"/g, '""')}"`,
+                        `"${item.status || ''}"`
+                    ];
+                    csvContent += row.join(",") + "\n";
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                const todayStr = new Date().toISOString().split('T')[0];
+                
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Kaizen_OT_Report_${todayStr}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        // TOGGLE INLINE EDIT IN VIEW ALL SUBMISSIONS
+        function toggleInlineEdit(key) {
+            const btn = document.getElementById(`edit_btn_${key}`);
+            const isEditing = btn.innerHTML.includes('Save');
+
+            const fields = [
+                `edit_name_${key}`, `edit_id_${key}`, `edit_date_${key}`,
+                `edit_start_${key}`, `edit_end_${key}`, `edit_reason_${key}`
+            ];
+
+            if(!isEditing) {
+                fields.forEach(fId => {
+                    const el = document.getElementById(fId);
+                    if(el) {
+                        el.removeAttribute('readonly');
+                        el.classList.add('bg-white', 'border', 'border-slate-300', 'rounded');
+                    }
+                });
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-1 rounded";
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
             } else {
-                alert("Please fill in employee names and dates. (请完整填写员工姓名与日期)");
+                const start = document.getElementById(`edit_start_${key}`).value;
+                const end = document.getElementById(`edit_end_${key}`).value;
+                let hours = '0.0';
+                if(start && end) {
+                    const s = new Date(`1970-01-01T${start}:00`);
+                    const e = new Date(`1970-01-01T${end}:00`);
+                    let diff = (e - s) / (1000 * 60 * 60);
+                    if(diff < 0) diff += 24;
+                    hours = diff.toFixed(1);
+                }
+
+                const updatedData = {
+                    name: document.getElementById(`edit_name_${key}`).value,
+                    empId: document.getElementById(`edit_id_${key}`).value,
+                    date: document.getElementById(`edit_date_${key}`).value,
+                    startTime: start,
+                    endTime: end,
+                    hours: hours,
+                    reason: document.getElementById(`edit_reason_${key}`).value
+                };
+
+                db.ref('ot_records/' + key).update(updatedData)
+                    .then(() => {
+                        alert('Record updated successfully! / 记录已更新成功！');
+                        fetchRecords();
+                    })
+                    .catch(err => alert('Update failed: ' + err.message));
             }
         }
 
-        function deleteSingleRecord(recordKey) {
-            if (confirm("Are you sure HR wants to delete this record?")) {
-                delete localRecords[recordKey];
-                localStorage.setItem('kaizen_ot_records_all_v3', JSON.stringify(localRecords));
-                renderRecordsTables();
+        // UPDATE STATUS TO SUBMITTED / PENDING
+        function updateRecordStatus(key, newStatus) {
+            if(!db) return;
+            db.ref('ot_records/' + key).update({ status: newStatus })
+                .then(() => {
+                    fetchRecords();
+                });
+        }
+
+        function deleteSingleRecord(key) {
+            if(!db) return;
+            if(confirm('Are you sure you want to delete this entry? / 确定删除此记录？')) {
+                db.ref('ot_records/' + key).remove()
+                    .then(() => {
+                        fetchRecords();
+                    });
             }
         }
 
-        function addNewRow(isDefaultToday = true) {
-            const tbody = document.getElementById('otTableBody');
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-50/80 transition";
-            const todayStr = new Date().toISOString().split('T')[0];
+        function deleteFilteredData() {
+            if(!isHR) { alert('HR Mode Required for Batch Deletion! / 仅限 HR 模式删除！'); return; }
+            if(!db) return;
 
-            tr.innerHTML = `
-                <td class="p-3">
-                    <select class="row-name bg-white border border-slate-300 rounded p-1.5 w-full text-xs font-semibold" onchange="handleStaffSelect(this)">
-                        <option value="">-- Select Staff / 选择员工 --</option>
-                    </select>
-                </td>
-                <td class="p-3">
-                    <input type="text" class="row-id bg-slate-100 border border-slate-300 rounded p-1.5 w-full text-xs font-bold text-center" readonly placeholder="ID">
-                </td>
-                <td class="p-3">
-                    <input type="date" class="row-date bg-white border border-slate-300 rounded p-1.5 w-full text-xs" value="${todayStr}">
-                </td>
-                <td class="p-3">
-                    <input type="time" class="row-start bg-white border border-slate-300 rounded p-1.5 w-full text-xs font-bold text-blue-700" value="17:00" onchange="calcRowHours(this)">
-                </td>
-                <td class="p-3">
-                    <input type="time" class="row-end bg-white border border-slate-300 rounded p-1.5 w-full text-xs" value="21:00" onchange="calcRowHours(this)">
-                </td>
-                <td class="p-3">
-                    <input type="text" class="row-hours bg-slate-100 border border-slate-300 rounded p-1.5 w-full text-xs font-extrabold text-center text-blue-800" readonly value="4.0">
-                </td>
-                <td class="p-3">
-                    <input type="text" class="row-reason bg-white border border-slate-300 rounded p-1.5 w-full text-xs" placeholder="Detail reason (工作原因)">
-                </td>
-                <td class="p-3 text-center">
-                    <button onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700 p-1 rounded font-bold">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-            populateRowStaffOptions(tr);
-        }
+            const targetDept = document.getElementById('delDept').value.trim();
+            const targetNameOrId = document.getElementById('delNameOrId').value.trim().toLowerCase();
+            const targetYear = document.getElementById('delYear').value.trim();
+            const targetMonth = document.getElementById('delMonth').value.trim();
+            const targetDate = document.getElementById('delSpecificDate').value;
 
-        function populateRowStaffOptions(tr) {
-            const currentDept = document.getElementById('departmentSelect').value;
-            const staffList = deptMap[currentDept]?.staff || [];
-            const selectEl = tr.querySelector('.row-name');
-            selectEl.innerHTML = '<option value="">-- Select Staff / 选择员工 --</option>';
-            staffList.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.name;
-                opt.setAttribute('data-id', s.id);
-                opt.textContent = `${s.name} (ID: ${s.id})`;
-                selectEl.appendChild(opt);
-            });
-        }
-
-        function handleStaffSelect(selectEl) {
-            const tr = selectEl.closest('tr');
-            const selectedOpt = selectEl.options[selectEl.selectedIndex];
-            const idInput = tr.querySelector('.row-id');
-            if (selectedOpt && selectedOpt.value) {
-                idInput.value = selectedOpt.getAttribute('data-id');
-            } else {
-                idInput.value = "";
+            if(!targetDept && !targetNameOrId && !targetYear && !targetMonth && !targetDate) {
+                alert('Please select at least one delete filter criterion!');
+                return;
             }
-        }
 
-        function handleDepartmentChange() {
-            const dept = document.getElementById('departmentSelect').value;
-            const deptInfo = deptMap[dept];
-            document.getElementById('currentDeptDisplay').textContent = `${dept} DEPARTMENT`;
-            document.getElementById('currentHODDisplay').textContent = deptInfo ? deptInfo.hod : "-";
-            document.querySelectorAll('#otTableBody tr').forEach(tr => {
-                populateRowStaffOptions(tr);
+            db.ref('ot_records').once('value', snapshot => {
+                const data = snapshot.val();
+                if(!data) { alert('Database is empty!'); return; }
+
+                let deleteKeys = [];
+
+                Object.entries(data).forEach(([key, item]) => {
+                    let match = true;
+
+                    if(targetDept && item.dept !== targetDept) match = false;
+                    if(targetNameOrId) {
+                        const nameMatch = item.name && item.name.toLowerCase().includes(targetNameOrId);
+                        const idMatch = item.empId && item.empId.toLowerCase().includes(targetNameOrId);
+                        if(!nameMatch && !idMatch) match = false;
+                    }
+
+                    if(item.date) {
+                        const parts = item.date.split('-');
+                        const y = parts[0];
+                        const m = parts[1];
+
+                        if(targetYear && y !== targetYear) match = false;
+                        if(targetMonth && m !== targetMonth) match = false;
+                        if(targetDate && item.date !== targetDate) match = false;
+                    }
+
+                    if(match) deleteKeys.push(key);
+                });
+
+                if(deleteKeys.length === 0) {
+                    alert('No matching records found to delete.');
+                    return;
+                }
+
+                if(confirm(`Found ${deleteKeys.length} matching record(s). Confirm deletion?`)) {
+                    let updates = {};
+                    deleteKeys.forEach(k => updates['ot_records/' + k] = null);
+                    db.ref().update(updates).then(() => {
+                        alert(`Successfully deleted ${deleteKeys.length} record(s)!`);
+                        fetchRecords();
+                    });
+                }
             });
         }
 
-        function loadWholeTeam() {
-            const currentDept = document.getElementById('departmentSelect').value;
-            const staffList = deptMap[currentDept]?.staff || [];
-            const tbody = document.getElementById('otTableBody');
-            tbody.innerHTML = "";
-            staffList.forEach(s => {
-                addNewRow(true);
-                const lastRow = tbody.lastElementChild;
-                const selectEl = lastRow.querySelector('.row-name');
-                selectEl.value = s.name;
-                handleStaffSelect(selectEl);
-            });
-        }
-
-        function calcRowHours(el) {
-            const tr = el.closest('tr');
-            const start = tr.querySelector('.row-start').value;
-            const end = tr.querySelector('.row-end').value;
-            const hoursInput = tr.querySelector('.row-hours');
-            if (start && end) {
-                let [sh, sm] = start.split(':').map(Number);
-                let [eh, em] = end.split(':').map(Number);
-                let startMins = sh * 60 + sm;
-                let endMins = eh * 60 + em;
-                let diff = endMins - startMins;
-                if (diff < 0) diff += 24 * 60;
-                hoursInput.value = (diff / 60).toFixed(1);
+        function clearAllData() {
+            if(!isHR) { alert('HR Mode Required! / 仅限 HR 模式操作！'); return; }
+            if(confirm('🚨 Confirm deleting ENTIRE database? / 确定彻底清空所有数据？')) {
+                db.ref('ot_records').remove().then(() => {
+                    alert('Database Cleared!');
+                    fetchRecords();
+                });
             }
         }
 
@@ -707,41 +857,46 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
 
-            if (tabName === 'submit') {
+            if(tabName === 'submit') {
                 document.getElementById('tabSubmit').classList.remove('hidden');
                 document.getElementById('tabBtnSubmit').classList.add('tab-active');
-            } else if (tabName === 'mySubmissions') {
+            } else if(tabName === 'mySubmissions') {
                 document.getElementById('tabMySubmissions').classList.remove('hidden');
                 document.getElementById('tabBtnMySubmissions').classList.add('tab-active');
-                renderRecordsTables();
-            } else if (tabName === 'hrArchive') {
-                const pwd = prompt("Enter HR Password (输入HR密码):");
-                if (pwd === "hr123" || pwd === "Kaizen2026") {
+                fetchRecords();
+            } else if(tabName === 'hrArchive') {
+                if(!isHR) { checkHRPasscode(); }
+                if(isHR) {
                     document.getElementById('tabHrArchive').classList.remove('hidden');
                     document.getElementById('tabBtnHrArchive').classList.add('tab-active');
-                    renderRecordsTables();
-                } else if (pwd !== null) {
-                    alert("Incorrect Password! (密码错误，仅限 HR 部门进入)");
+                    fetchRecords();
                 }
             }
         }
 
-        function fetchRecords() {
-            renderRecordsTables();
-            alert("Records synchronized successfully!");
-        }
-
-        function clearAllData() {
-            if (confirm("WARNING: Are you sure you want to clear all records?")) {
-                localRecords = {};
-                localStorage.removeItem('kaizen_ot_records_all_v3');
-                renderRecordsTables();
-                alert("All records cleared.");
-            }
-        }
-
         function toggleHRLoginModal() {
-            switchTab('hrArchive');
+            checkHRPasscode();
+        }
+
+        function checkHRPasscode() {
+            if(isHR) {
+                isHR = false;
+                document.getElementById('accessModeBadge').innerText = 'STAFF MODE (员工模式)';
+                document.getElementById('accessModeBadge').className = 'bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold';
+                document.getElementById('hrLoginBtnText').innerText = 'HR Login (HR 登录)';
+                alert('Logged out of HR Mode.');
+            } else {
+                const pass = prompt('Enter HR Master Passcode:');
+                if(pass === '1234') {
+                    isHR = true;
+                    document.getElementById('accessModeBadge').innerText = 'HR MASTER MODE (HR 主控模式)';
+                    document.getElementById('accessModeBadge').className = 'bg-amber-500 text-white px-2 py-0.5 rounded font-bold';
+                    document.getElementById('hrLoginBtnText').innerText = 'HR Logout (HR 退出)';
+                    alert('HR Master Mode Unlocked!');
+                } else if(pass !== null) {
+                    alert('Incorrect Passcode.');
+                }
+            }
         }
     </script>
 </body>
