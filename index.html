@@ -41,13 +41,8 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <div class="bg-slate-100 border border-slate-200 rounded-lg p-1.5 flex items-center gap-2 text-xs font-semibold">
-                    <span class="text-slate-500">Access Mode:</span>
-                    <span id="accessModeBadge" class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">PUBLIC / STAFF VIEW (全员公开模式)</span>
-                </div>
-
-                <button id="hrLoginBtn" onclick="toggleHRLoginModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-amber-400"></i> <span id="hrLoginBtnText">HR Login (HR 专属登录)</span>
+                <button onclick="requestHRUnlock()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-lock text-amber-400" id="hrLockIcon"></i> <span id="hrLoginBtnText">HR Portal (需密码登录)</span>
                 </button>
             </div>
         </div>
@@ -58,17 +53,17 @@
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md p-6 m-4">
             <div class="flex justify-between items-center mb-4 pb-2 border-b">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-amber-600"></i> HR Portal Access Verification
+                    <i class="fa-solid fa-shield-halved text-amber-600"></i> HR Administrator Verification
                 </h3>
-                <button onclick="toggleHRLoginModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="toggleHRLoginModal(false)" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-xs text-slate-600 mb-4">Please enter your authorized HR administrator password to unlock restricted archiving and deletion controls.</p>
+            <p class="text-xs text-slate-600 mb-4">Please enter the authorized HR password to access management and deletion controls.</p>
             <div class="mb-4">
                 <label class="block text-xs font-bold text-slate-700 mb-1">Password / 密码:</label>
                 <input type="password" id="hrPasswordInput" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter HR password...">
             </div>
             <div class="flex justify-end gap-2">
-                <button onclick="toggleHRLoginModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancel</button>
+                <button onclick="toggleHRLoginModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancel</button>
                 <button onclick="verifyHRLogin()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow">Login / 登录</button>
             </div>
         </div>
@@ -111,10 +106,10 @@
                     <i class="fa-solid fa-pen-to-square"></i> Submit OT / Hantar OT / 提交 OT
                 </button>
                 <button onclick="switchTab('mySubmissions')" id="tabBtnMySubmissions" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-user-clock"></i> View All Submissions / 查看所有员工记录
+                    <i class="fa-solid fa-user-clock"></i> View All Submissions / 查看所有员工记录 (全员互通)
                 </button>
-                <button onclick="switchTab('hrArchive')" id="tabBtnHrArchive" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">🔒 HR Only (需密码)</span>
+                <button onclick="requestHRUnlock()" id="tabBtnHrArchive" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">🔒 需密码登录</span>
                 </button>
             </nav>
         </div>
@@ -127,7 +122,7 @@
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-blue-700"></i> Overtime Entry Form (加班表格)
                         </h2>
-                        <p class="text-xs text-slate-500">Default start time is 17:00 (下午5点). All submissions are instantly visible to everyone across all devices.</p>
+                        <p class="text-xs text-slate-500">Default start time is 17:00 (下午5点). All submissions instantly sync across all mobile & PC devices.</p>
                     </div>
                     <button onclick="loadWholeTeam()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                         <i class="fa-solid fa-bolt text-indigo-600"></i> ⚡ Auto-Load Team (载入全员)
@@ -162,20 +157,20 @@
                             <i class="fa-solid fa-hourglass-start"></i> Save PENDING (暂存)
                         </button>
                         <button onclick="submitOT('APPROVED')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-check"></i> Confirm Submission (确认提交)
+                            <i class="fa-solid fa-circle-check"></i> Confirm Submission (确认提交上架)
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW ALL SUBMISSIONS TAB -->
+        <!-- VIEW ALL SUBMISSIONS TAB (全员跨设备互通可见) -->
         <div id="tabMySubmissions" class="tab-content hidden space-y-4">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有员工加班记录与日期正/逆序)</h3>
-                        <p class="text-xs text-slate-500">Accessible by all devices 24/7. Shows submissions from everyone instantly.</p>
+                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有员工加班记录 - 任何手机与电脑互通可见)</h3>
+                        <p class="text-xs text-slate-500">Anyone on any device can view all submitted records instantly here.</p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 text-xs">
@@ -201,7 +196,7 @@
                                 <th class="p-2 w-20 text-center">Hours / 时数</th>
                                 <th class="p-2">Reason / 原因</th>
                                 <th class="p-2 w-24">Status / 状态</th>
-                                <th class="p-2 w-32 text-center">Submitted By</th>
+                                <th class="p-2 w-32 text-center">Submitted Device</th>
                             </tr>
                         </thead>
                         <tbody id="submissionsTableBody" class="divide-y divide-slate-100">
@@ -211,13 +206,16 @@
             </div>
         </div>
 
-        <!-- HR ARCHIVE & DELETE CONTROLS TAB -->
+        <!-- HR ARCHIVE & DELETE CONTROLS TAB (必须密码解锁) -->
         <div id="tabHrArchive" class="tab-content hidden space-y-6">
             <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
-                <div class="flex items-center gap-2 text-rose-800 font-extrabold text-base mb-1">
-                    <i class="fa-solid fa-shield-halved"></i> HR Exclusive Management & Delete Center (HR 专属管理与删除中心)
+                <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                    <div class="flex items-center gap-2 text-rose-800 font-extrabold text-base">
+                        <i class="fa-solid fa-shield-halved"></i> HR Exclusive Management & Delete Center (HR 专属管理中心)
+                    </div>
+                    <button onclick="lockHRPortal()" class="bg-slate-800 text-white text-xs px-3 py-1.5 rounded font-bold">Lock / 重新加锁退出</button>
                 </div>
-                <p class="text-xs text-rose-600 mb-4">Only authorized HR personnel can access this section.</p>
+                <p class="text-xs text-rose-600 mb-4">Authorized HR personnel only.</p>
 
                 <div class="pt-3 border-t border-rose-200 flex justify-between items-center flex-wrap gap-2">
                     <span class="text-xs font-bold text-rose-800">⚠️ Danger Zone:</span>
@@ -260,9 +258,8 @@
 
     </main>
 
-    <!-- SYSTEM SCRIPT (采用极高穩定度的公開共用雲端頻道与雙重備份同步) -->
+    <!-- SYSTEM SCRIPT (保留你原本所有 94 筆記錄與部門員工資料，並加入雲端跨設備同步與 HR 密碼保護) -->
     <script>
-        // 使用公開穩定 JSONBin 頻道與雙重本地備份
         const CLOUD_SYNC = {
             binId: '67c2901ee41b4d34e49842ff', 
             apiKey: '$2a$10$wI5Y5W5Y5W5Y5W5Y5W5Y5e...', 
@@ -480,6 +477,7 @@
 
         let currentSortOrder = 'desc'; 
         let allRecordsCache = {};
+        let isHRAuthenticated = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
             await fetchAllRecordsFromCloud();
@@ -488,7 +486,6 @@
 
         async function fetchAllRecordsFromCloud() {
             try {
-                // 優先嘗試從免費公共 REST API (npoint 或 jsonbin 公開 GET) 讀取最新全局資料
                 const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
                     headers: { 'X-Master-Key': CLOUD_SYNC.apiKey }
                 });
@@ -529,7 +526,6 @@
 
         async function saveAllRecordsToCloud(records) {
             allRecordsCache = records;
-            // 雙重保險：同時寫入本地端與全域快取
             localStorage.setItem('kaizen_ot_records', JSON.stringify(records));
             renderSubmissionsTable();
             renderHRTable();
@@ -544,11 +540,11 @@
                     body: JSON.stringify({ ot_records: records })
                 });
             } catch (e) {
-                console.warn('雲端更新提示：已透過本機快取與廣播同步');
+                console.warn('云端同步提示：已通过本地快取更新');
             }
         }
 
-        // 每 3 秒自動背景同步，確保手機與電腦即時互通
+        // 每 3 秒自动轮询云端，实现跨手机、跨电脑即时互通
         setInterval(async () => {
             try {
                 const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
@@ -558,7 +554,6 @@
                     const json = await res.json();
                     if (json.record && json.record.ot_records) {
                         const remoteRecs = json.record.ot_records;
-                        // 如果雲端資料筆數與本地不同，自動更新畫面
                         if (JSON.stringify(remoteRecs) !== JSON.stringify(allRecordsCache)) {
                             allRecordsCache = remoteRecs;
                             localStorage.setItem('kaizen_ot_records', JSON.stringify(allRecordsCache));
@@ -572,10 +567,15 @@
 
         function manualSync() {
             fetchAllRecordsFromCloud();
-            alert('已成功重新整理並同步所有設備的最新員工記錄！');
+            alert('已成功同步所有设备最新上架记录！');
         }
 
         function switchTab(tabName) {
+            if (tabName === 'hrArchive' && !isHRAuthenticated) {
+                requestHRUnlock();
+                return;
+            }
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active', 'border-blue-600', 'text-blue-600'));
 
@@ -591,6 +591,47 @@
                 document.getElementById('tabBtnHrArchive').classList.add('tab-active');
                 renderHRTable();
             }
+        }
+
+        function requestHRUnlock() {
+            if (isHRAuthenticated) {
+                switchTab('hrArchive');
+            } else {
+                toggleHRLoginModal(true);
+            }
+        }
+
+        function toggleHRLoginModal(show) {
+            const modal = document.getElementById('hrLoginModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function verifyHRLogin() {
+            const pwd = document.getElementById('hrPasswordInput').value;
+            // 设定 HR 密码 (例如 admin123 或 kaizen2026)
+            if (pwd === 'admin123' || pwd === 'hr123' || pwd === '1234' || pwd === 'kaizen2026') {
+                isHRAuthenticated = true;
+                toggleHRLoginModal(false);
+                document.getElementById('hrPasswordInput').value = '';
+                document.getElementById('hrLockIcon').className = "fa-solid fa-lock-open text-emerald-400";
+                document.getElementById('hrLoginBtnText').innerText = "HR Portal (已解锁)";
+                switchTab('hrArchive');
+                alert('密码验证成功！已进入 HR 专属管理中心。');
+            } else {
+                alert('密码错误！');
+            }
+        }
+
+        function lockHRPortal() {
+            isHRAuthenticated = false;
+            document.getElementById('hrLockIcon').className = "fa-solid fa-lock text-amber-400";
+            document.getElementById('hrLoginBtnText').innerText = "HR Portal (需密码登录)";
+            switchTab('submit');
+            alert('已成功退出 HR 管理并重新上锁。');
         }
 
         function handleDepartmentChange() {
@@ -738,12 +779,12 @@
                     hours: hours,
                     reason: reason,
                     status: status,
-                    submittedBy: 'Mobile/PC (Synced)'
+                    submittedBy: 'Mobile/PC Sync'
                 };
             });
 
             await saveAllRecordsToCloud(newRecords);
-            alert('✅ 提交成功！资料已即时同步，所有设备的「所有员工记录」均可立即看到！');
+            alert('✅ 提交上架成功！資料已即時同步到雲端，所有人的手機與電腦在「View All Submissions」均可立即看到！');
             switchTab('mySubmissions');
         }
 
@@ -808,6 +849,10 @@
         }
 
         async function deleteRecord(key) {
+            if (!isHRAuthenticated) {
+                alert('权限不足！');
+                return;
+            }
             if (confirm('確定要刪除這筆加班記錄嗎？')) {
                 let newRecords = {...allRecordsCache};
                 delete newRecords[key];
@@ -817,6 +862,10 @@
         }
 
         async function clearAllData() {
+            if (!isHRAuthenticated) {
+                alert('权限不足！');
+                return;
+            }
             if (prompt('⚠️ 警告：這將清空所有雲端與本地記錄！請輸入確認：') !== null) {
                 await saveAllRecordsToCloud({});
                 alert('所有記錄已清空。');
@@ -833,23 +882,6 @@
                 document.getElementById('sortAscBtn').className = "px-3 py-1 rounded font-bold text-slate-600 transition";
             }
             renderSubmissionsTable();
-        }
-
-        function toggleHRLoginModal() {
-            const modal = document.getElementById('hrLoginModal');
-            modal.classList.toggle('hidden');
-        }
-
-        function verifyHRLogin() {
-            const pwd = document.getElementById('hrPasswordInput').value;
-            if (pwd === 'admin123' || pwd === 'hr123' || pwd === '1234' || pwd === 'kaizen2026') {
-                toggleHRLoginModal();
-                document.getElementById('hrPasswordInput').value = '';
-                switchTab('hrArchive');
-                alert('權限驗證成功，已進入 HR 專屬管理與刪除中心！');
-            } else {
-                alert('密碼錯誤！');
-            }
         }
     </script>
 </body>
