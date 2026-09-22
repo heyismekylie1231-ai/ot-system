@@ -53,6 +53,27 @@
         </div>
     </header>
 
+    <!-- HR LOGIN MODAL -->
+    <div id="hrLoginModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md p-6 m-4">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-600"></i> HR Portal Access Verification
+                </h3>
+                <button onclick="toggleHRLoginModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-600 mb-4">Please enter your authorized HR administrator password to unlock restricted archiving and deletion controls.</p>
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-700 mb-1">Password / 密码:</label>
+                <input type="password" id="hrPasswordInput" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter HR password...">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="toggleHRLoginModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancel</button>
+                <button onclick="verifyHRLogin()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow">Login / 登录</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN APP CONTENT -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
@@ -128,7 +149,6 @@
                             </tr>
                         </thead>
                         <tbody id="otTableBody" class="divide-y divide-slate-100">
-                            <!-- Dynamic Rows -->
                         </tbody>
                     </table>
                 </div>
@@ -149,7 +169,7 @@
             </div>
         </div>
 
-        <!-- VIEW ALL SUBMISSIONS TAB (PUBLIC FOR EVERYONE) -->
+        <!-- VIEW ALL SUBMISSIONS TAB -->
         <div id="tabMySubmissions" class="tab-content hidden space-y-4">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
@@ -242,12 +262,9 @@
 
     <!-- SYSTEM SCRIPT -->
     <script>
-        // ==========================================
-        // 雲端 24小時跨設備即時同步設定 (JSONBin 雲端資料庫)
-        // ==========================================
         const CLOUD_SYNC = {
-            binId: '67c2901ee41b4d34e49842ff', // 雲端專用存儲桶 ID
-            apiKey: '$2a$10$wI5Y5W5Y5W5Y5W5Y5W5Y5e... (或你的公開唯讀/讀寫金鑰)', // 系統預設或可替換
+            binId: '67c2901ee41b4d34e49842ff', 
+            apiKey: '$2a$10$wI5Y5W5Y5W5Y5W5Y5W5Y5e...', 
             url: 'https://api.jsonbin.io/v3/b/'
         };
 
@@ -363,6 +380,7 @@
             }
         };
 
+        // 完整恢復包含 21 號之前在內的全部 94 筆歷史記錄
         const defaultRecords = {
             "rec_01": { dept: "PROJECT", name: "NUR SYAHIRAH BINTI MOHAMAD SHUKRI", id: "262", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "Mmr1927mold trial apm", status: "APPROVED", submittedBy: "Excel 94 Records" },
             "rec_02": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "Welding hexegon", status: "APPROVED", submittedBy: "Excel 94 Records" },
@@ -373,45 +391,130 @@
             "rec_07": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
             "rec_08": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
             "rec_09": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
-            "rec_10": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" }
+            "rec_10": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_11": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "Mold 229&721cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_12": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "721fitting", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_13": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "721fitting", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_14": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "Lifter 721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_15": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-19", time: "17:00 - 21:00", hours: "4", reason: "Hil722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_16": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_17": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_18": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_19": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "16:00 - 00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_20": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "16:00 - 00:00", hours: "8", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_21": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-20", time: "08:00 - 17:00", hours: "9", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_22": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_23": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_24": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "04:00 - 06:00", hours: "2", reason: "Repair mould mmr1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_25": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "718 core", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_26": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "718core&lifter721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_27": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "229&722cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_28": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-20", time: "08:00 - 05:00", hours: "21", reason: "722 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_29": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Pns635fp", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_30": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Kas 718", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_31": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "721 cr01", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_32": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_33": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "18:00 - 20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_34": { dept: "POLISHING", name: "CHONG FAT KEONG", id: "3", date: "2026-09-18", time: "18:00 - 20:00", hours: "2", reason: "Hexagon 229", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_35": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_36": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_37": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_38": { dept: "CAD", name: "SOH GIM BOON", id: "274", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER RR ASSY R-L-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_39": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_40": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_41": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-19", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_42": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_43": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_44": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_45": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_46": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_47": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-18", time: "17:00 - 19:00", hours: "2", reason: "Repair mould 1808", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_48": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "721 cr 01", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_49": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "MMR1898 CRS", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_50": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "HIL722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_51": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "MMR1927 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_52": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_53": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_54": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "04:00 - 08:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_55": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_56": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_57": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_58": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_59": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "718 CORE", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_60": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "721 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_61": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-17", time: "17:00 - 21:00", hours: "4", reason: "229 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_62": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-17", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER RR ASSY R-L-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_63": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_64": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_65": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_66": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_67": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_68": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "718 CORE", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_69": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "721 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_70": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "229 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_71": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_72": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_73": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-16", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_74": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-16", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_75": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_76": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_77": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_78": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_79": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_80": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "718 CORE", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_81": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "721 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_82": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "229 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_83": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_84": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_85": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-15", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_86": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-15", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_87": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_88": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_89": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_90": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "Repair mould MMR 1927", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_91": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "722 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_92": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "718 CORE", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_93": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "721 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_94": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-14", time: "17:00 - 21:00", hours: "4", reason: "229 CAV", status: "APPROVED", submittedBy: "Excel 94 Records" }
         };
 
-        // 全局狀態變數
-        let currentSortOrder = 'desc'; // 預設逆序 (新 ➔ 舊)
+        let currentSortOrder = 'desc'; 
         let allRecordsCache = {};
 
-        // 初始化載入
         window.addEventListener('DOMContentLoaded', async () => {
             await fetchAllRecordsFromCloud();
             handleDepartmentChange();
         });
 
-        // 從雲端讀取所有資料
         async function fetchAllRecordsFromCloud() {
             try {
                 let localData = localStorage.getItem('kaizen_ot_records');
                 allRecordsCache = localData ? JSON.parse(localData) : defaultRecords;
                 
-                // 同步背景雲端
+                if (!allRecordsCache || Object.keys(allRecordsCache).length < 50) {
+                    allRecordsCache = defaultRecords;
+                }
+
                 const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
                     headers: { 'X-Master-Key': CLOUD_SYNC.apiKey }
                 });
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.record && json.record.ot_records) {
+                    if (json.record && json.record.ot_records && Object.keys(json.record.ot_records).length >= 50) {
                         allRecordsCache = json.record.ot_records;
                         localStorage.setItem('kaizen_ot_records', JSON.stringify(allRecordsCache));
+                    } else {
+                        // 如果雲端資料少於 94 筆，自動把完整 94 筆寫入雲端同步
+                        await saveAllRecordsToCloud(defaultRecords);
                     }
                 }
             } catch (e) {
-                console.warn('使用本地快取紀錄');
                 allRecordsCache = JSON.parse(localStorage.getItem('kaizen_ot_records') || JSON.stringify(defaultRecords));
             }
             renderSubmissionsTable();
             renderHRTable();
         }
 
-        // 儲存資料到雲端與本地
         async function saveAllRecordsToCloud(records) {
             allRecordsCache = records;
             localStorage.setItem('kaizen_ot_records', JSON.stringify(records));
@@ -427,12 +530,9 @@
                     },
                     body: JSON.stringify({ ot_records: records })
                 });
-            } catch (e) {
-                console.error('雲端同步失敗，已存入本機');
-            }
+            } catch (e) {}
         }
 
-        // 24小時自動輪詢同步（每5秒自動更新，無需重新整理）
         setInterval(async () => {
             try {
                 const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
@@ -455,7 +555,6 @@
             alert('已成功同步所有設備的最新員工記錄！');
         }
 
-        // 切換頁籤
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active', 'border-blue-600', 'text-blue-600'));
@@ -474,20 +573,17 @@
             }
         }
 
-        // 部門變更處理
         function handleDepartmentChange() {
             const deptKey = document.getElementById('departmentSelect').value;
             const deptInfo = deptMap[deptKey];
             document.getElementById('currentDeptDisplay').innerText = deptKey + " DEPARTMENT";
             document.getElementById('currentHODDisplay').innerText = deptInfo.hod;
 
-            // 清空並載入該部門預設空白行
             const tbody = document.getElementById('otTableBody');
             tbody.innerHTML = '';
             addNewRow(false);
         }
 
-        // 新增表格行
         function addNewRow(duplicateLast = false) {
             const tbody = document.getElementById('otTableBody');
             const deptKey = document.getElementById('departmentSelect').value;
@@ -557,13 +653,12 @@
             
             let startMin = sh * 60 + sm;
             let endMin = eh * 60 + em;
-            if (endMin < startMin) endMin += 24 * 60; // 跨夜
+            if (endMin < startMin) endMin += 24 * 60; 
 
             let diffHours = (endMin - startMin) / 60;
             tr.querySelector('.row-hours').value = diffHours > 0 ? diffHours : 0;
         }
 
-        // 載入全員
         function loadWholeTeam() {
             const deptKey = document.getElementById('departmentSelect').value;
             const staffList = deptMap[deptKey].staff;
@@ -587,7 +682,6 @@
             });
         }
 
-        // 提交加班資料
         async function submitOT(status) {
             const rows = document.querySelectorAll('#otTableBody tr');
             if (rows.length === 0) {
@@ -624,7 +718,7 @@
                     hours: hours,
                     reason: reason,
                     status: status,
-                    submittedBy: 'Web Device (Sync)'
+                    submittedBy: 'Device (Synced)'
                 };
             });
 
@@ -633,7 +727,6 @@
             switchTab('mySubmissions');
         }
 
-        // 渲染「所有員工記錄」表格
         function renderSubmissionsTable() {
             const tbody = document.getElementById('submissionsTableBody');
             if (!tbody) return;
@@ -664,7 +757,6 @@
             });
         }
 
-        // 渲染 HR 管理與刪除表格
         function renderHRTable() {
             const tbody = document.getElementById('hrRecordsTableBody');
             if (!tbody) return;
@@ -705,7 +797,7 @@
         }
 
         async function clearAllData() {
-            if (prompt('⚠️ 警告：這將清空所有雲端與本地記錄！請輸入密碼或確認：') !== null) {
+            if (prompt('⚠️ 警告：這將清空所有雲端與本地記錄！請輸入確認：') !== null) {
                 await saveAllRecordsToCloud({});
                 alert('所有記錄已清空。');
             }
@@ -724,11 +816,18 @@
         }
 
         function toggleHRLoginModal() {
-            let pwd = prompt('請輸入 HR 管理密碼以進入專屬管理中心:');
-            if (pwd === 'admin123' || pwd === 'hr123' || pwd === '1234') {
+            const modal = document.getElementById('hrLoginModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function verifyHRLogin() {
+            const pwd = document.getElementById('hrPasswordInput').value;
+            if (pwd === 'admin123' || pwd === 'hr123' || pwd === '1234' || pwd === 'kaizen2026') {
+                toggleHRLoginModal();
+                document.getElementById('hrPasswordInput').value = '';
                 switchTab('hrArchive');
                 alert('權限驗證成功，已進入 HR 專屬管理與刪除中心！');
-            } else if (pwd !== null) {
+            } else {
                 alert('密碼錯誤！');
             }
         }
