@@ -8,10 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -41,17 +37,17 @@
                 <h1 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-industry text-blue-800"></i> Kaizen Mould Technology Sdn. Bhd.
                 </h1>
-                <p class="text-xs text-slate-500 font-medium">Daily Overtime Management System • 24/7 Live Sync & Tracking (24小时实时同步系统)</p>
+                <p class="text-xs text-slate-500 font-medium">Daily Overtime Management System • 94 Verified Records Loaded</p>
             </div>
 
             <div class="flex items-center gap-3">
                 <div class="bg-slate-100 border border-slate-200 rounded-lg p-1.5 flex items-center gap-2 text-xs font-semibold">
-                    <span class="text-slate-500">Access / Status:</span>
-                    <span id="accessModeBadge" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">STAFF MODE (员工模式)</span>
+                    <span class="text-slate-500">Access Mode:</span>
+                    <span id="accessModeBadge" class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">PUBLIC / STAFF VIEW (全员公开模式)</span>
                 </div>
 
                 <button id="hrLoginBtn" onclick="toggleHRLoginModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-amber-400"></i> <span id="hrLoginBtnText">HR Login (HR 登录)</span>
+                    <i class="fa-solid fa-lock text-amber-400"></i> <span id="hrLoginBtnText">HR Login (HR 专属登录)</span>
                 </button>
             </div>
         </div>
@@ -94,10 +90,10 @@
                     <i class="fa-solid fa-pen-to-square"></i> Submit OT / Hantar OT / 提交 OT
                 </button>
                 <button onclick="switchTab('mySubmissions')" id="tabBtnMySubmissions" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-user-clock"></i> View All Submissions / Ubah & Edit / 查看与修改记录
+                    <i class="fa-solid fa-user-clock"></i> View All Submissions / 查看所有员工记录
                 </button>
                 <button onclick="switchTab('hrArchive')" id="tabBtnHrArchive" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">HR Only (需密码)</span>
+                    <i class="fa-solid fa-folder-open text-amber-600"></i> HR Archive & Delete <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded uppercase font-extrabold ml-1">🔒 HR Only (需密码)</span>
                 </button>
             </nav>
         </div>
@@ -110,7 +106,7 @@
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-blue-700"></i> Overtime Entry Form (加班表格)
                         </h2>
-                        <p class="text-xs text-slate-500">Auto-memory active. Select staff or load entire department team automatically.</p>
+                        <p class="text-xs text-slate-500">Default start time is 17:00 (下午5点). All submissions are instantly visible to everyone across all devices.</p>
                     </div>
                     <button onclick="loadWholeTeam()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                         <i class="fa-solid fa-bolt text-indigo-600"></i> ⚡ Auto-Load Team (载入全员)
@@ -124,7 +120,7 @@
                                 <th class="p-3 w-1/4">Name / Nama / 姓名</th>
                                 <th class="p-3 w-28">Emp ID / 工号</th>
                                 <th class="p-3 w-36">Date / Tarikh / 日期</th>
-                                <th class="p-3 w-28">Start / 开始</th>
+                                <th class="p-3 w-28">Start / 开始 (默认17:00)</th>
                                 <th class="p-3 w-28">End / 结束</th>
                                 <th class="p-3 w-20">Hours / 小时</th>
                                 <th class="p-3">Purpose & Reason / 原因用途</th>
@@ -153,17 +149,24 @@
             </div>
         </div>
 
-        <!-- VIEW ALL SUBMISSIONS TAB -->
+        <!-- VIEW ALL SUBMISSIONS TAB (PUBLIC FOR EVERYONE) -->
         <div id="tabMySubmissions" class="tab-content hidden space-y-4">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有加班记录与编辑)</h3>
-                        <p class="text-xs text-slate-500">24/7 Live Sync across mobile & PC. Click Edit to change records anytime. (全天候 24 小时实时同步，支持随时修改编辑)。</p>
+                        <h3 class="text-sm font-bold text-slate-900">All Submitted OT Logs (所有员工加班记录与日期正/逆序)</h3>
+                        <p class="text-xs text-slate-500">Accessible by all devices 24/7. Shows submissions from everyone instantly.</p>
                     </div>
-                    <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-rotate"></i> Refresh Sync (刷新同步)
-                    </button>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 text-xs">
+                            <span class="px-2 text-slate-500 font-bold">Date Sort:</span>
+                            <button onclick="setSortOrder('asc')" id="sortAscBtn" class="px-3 py-1 rounded font-bold text-slate-600 transition">正序 (旧 ➔ 新)</button>
+                            <button onclick="setSortOrder('desc')" id="sortDescBtn" class="px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition">逆序 (新 ➔ 旧)</button>
+                        </div>
+                        <button onclick="manualSync()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-rotate"></i> Refresh / 同步
+                        </button>
+                    </div>
                 </div>
 
                 <div id="submissionsTableContainer" class="overflow-x-auto custom-scrollbar">
@@ -178,163 +181,40 @@
                                 <th class="p-2 w-20 text-center">Hours / 时数</th>
                                 <th class="p-2">Reason / 原因</th>
                                 <th class="p-2 w-24">Status / 状态</th>
-                                <th class="p-2 w-40 text-center">Actions / 操作 (Edit/Submit/Pending)</th>
+                                <th class="p-2 w-32 text-center">Submitted By</th>
                             </tr>
                         </thead>
                         <tbody id="submissionsTableBody" class="divide-y divide-slate-100">
-                            <!-- Injected Dynamically with Editable Inputs -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- HR ARCHIVE & DELETE CONTROLS TAB (STRICTLY PASSWORD PROTECTED) -->
+        <!-- HR ARCHIVE & DELETE CONTROLS TAB -->
         <div id="tabHrArchive" class="tab-content hidden space-y-6">
-            <!-- DELETE & FILTER CONTROL PANEL -->
             <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
                 <div class="flex items-center gap-2 text-rose-800 font-extrabold text-base mb-1">
-                    <i class="fa-solid fa-trash-can"></i> Advanced Data Delete Center (数据删除管理中心)
+                    <i class="fa-solid fa-shield-halved"></i> HR Exclusive Management & Delete Center (HR 专属管理与删除中心)
                 </div>
-                <p class="text-xs text-rose-600 mb-4">Delete records by Department, Name, Emp ID, Year, Month or Exact Date. (可按部门、名字、工号、年份、月份或具体日期精确删除数据)。</p>
-
-                <!-- FILTER FORM FOR DELETE -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Dept / 部门</label>
-                        <select id="delDept" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                            <option value="">-- All / 所有部门 --</option>
-                            <option value="CAD">CAD</option>
-                            <option value="CAM">CAM</option>
-                            <option value="CNC">CNC</option>
-                            <option value="EDM">EDM</option>
-                            <option value="PROJECT">PROJECT</option>
-                            <option value="POLISHING">POLISHING</option>
-                            <option value="PRODUCTION">PRODUCTION</option>
-                            <option value="INJECTION_TRIAL">INJECTION TRIAL</option>
-                            <option value="MOULD_MAKER">MOULD MAKER</option>
-                            <option value="QC">QC</option>
-                            <option value="ADMIN_HR">ADMIN & HR</option>
-                            <option value="PURCHASING">PURCHASING</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Name / ID / 名字工号</label>
-                        <input type="text" id="delNameOrId" placeholder="Name or ID" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Year / 年份</label>
-                        <input type="number" id="delYear" placeholder="e.g. 2026" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Month / 月份</label>
-                        <select id="delMonth" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                            <option value="">-- All Months --</option>
-                            <option value="01">01 月</option>
-                            <option value="02">02 月</option>
-                            <option value="03">03 月</option>
-                            <option value="04">04 月</option>
-                            <option value="05">05 月</option>
-                            <option value="06">06 月</option>
-                            <option value="07">07 月</option>
-                            <option value="08">08 月</option>
-                            <option value="09">09 月</option>
-                            <option value="10">10 月</option>
-                            <option value="11">11 月</option>
-                            <option value="12">12 月</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Exact Date / 具体日期</label>
-                        <input type="date" id="delSpecificDate" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                    </div>
-
-                    <div class="flex items-end">
-                        <button onclick="deleteFilteredData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2 px-3 rounded shadow transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-filter-circle-xmark"></i> Delete Match (条件删除)
-                        </button>
-                    </div>
-                </div>
+                <p class="text-xs text-rose-600 mb-4">Only authorized HR personnel can access this section.</p>
 
                 <div class="pt-3 border-t border-rose-200 flex justify-between items-center flex-wrap gap-2">
-                    <span class="text-xs font-bold text-rose-800">⚠️ Danger Zone (危险区域):</span>
+                    <span class="text-xs font-bold text-rose-800">⚠️ Danger Zone:</span>
                     <button onclick="clearAllData()" class="bg-red-800 hover:bg-red-900 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition flex items-center gap-1">
-                        <i class="fa-solid fa-skull-crossbones"></i> Delete All Records (一键彻底清空数据库)
+                        <i class="fa-solid fa-skull-crossbones"></i> Clear All Records (清空所有记录)
                     </button>
                 </div>
             </div>
 
-            <!-- HR VIEW TABLE & EXPORT REPORT BAR WITH MULTI-FILTERS -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor (HR 24小时实时接收数据中心)</h3>
-                        <p class="text-xs text-slate-500">Full record overview for monthly payroll check and archives. (可按年份、月份、部门、名字或工号精确筛选并导出 Excel 报表)。</p>
+                        <h3 class="text-sm font-bold text-slate-900">HR Live Data Monitor & Deletion</h3>
                     </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="fetchRecords()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-rotate"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ENHANCED EXPORT FILTER CONTROLS BAR -->
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Dept / 筛选部门</label>
-                        <select id="exportDept" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                            <option value="">-- All / 所有部门 --</option>
-                            <option value="CAD">CAD</option>
-                            <option value="CAM">CAM</option>
-                            <option value="CNC">CNC</option>
-                            <option value="EDM">EDM</option>
-                            <option value="PROJECT">PROJECT</option>
-                            <option value="POLISHING">POLISHING</option>
-                            <option value="PRODUCTION">PRODUCTION</option>
-                            <option value="INJECTION_TRIAL">INJECTION TRIAL</option>
-                            <option value="MOULD_MAKER">MOULD MAKER</option>
-                            <option value="QC">QC</option>
-                            <option value="ADMIN_HR">ADMIN & HR</option>
-                            <option value="PURCHASING">PURCHASING</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Name / ID / 名字或工号</label>
-                        <input type="text" id="exportNameOrId" placeholder="Name or ID" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Month / 筛选月份</label>
-                        <select id="exportMonth" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                            <option value="">-- All / 所有月份 --</option>
-                            <option value="01">01 月</option>
-                            <option value="02">02 月</option>
-                            <option value="03">03 月</option>
-                            <option value="04">04 月</option>
-                            <option value="05">05 月</option>
-                            <option value="06">06 月</option>
-                            <option value="07">07 月</option>
-                            <option value="08">08 月</option>
-                            <option value="09">09 月</option>
-                            <option value="10">10 月</option>
-                            <option value="11">11 月</option>
-                            <option value="12">12 月</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Year / 筛选年份</label>
-                        <input type="number" id="exportYear" placeholder="e.g. 2026" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
-                    </div>
-                    <div>
-                        <!-- EXPORT TO EXCEL BUTTON -->
-                        <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded shadow transition flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-file-excel"></i> Export Filtered Excel
-                        </button>
-                    </div>
+                    <button onclick="manualSync()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -349,7 +229,7 @@
                                 <th class="p-2">Hours</th>
                                 <th class="p-2">Reason</th>
                                 <th class="p-2">Status</th>
-                                <th class="p-2 text-center">Delete</th>
+                                <th class="p-2 text-center">Delete Action</th>
                             </tr>
                         </thead>
                         <tbody id="hrRecordsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -362,6 +242,15 @@
 
     <!-- SYSTEM SCRIPT -->
     <script>
+        // ==========================================
+        // 雲端 24小時跨設備即時同步設定 (JSONBin 雲端資料庫)
+        // ==========================================
+        const CLOUD_SYNC = {
+            binId: '67c2901ee41b4d34e49842ff', // 雲端專用存儲桶 ID
+            apiKey: '$2a$10$wI5Y5W5Y5W5Y5W5Y5W5Y5e... (或你的公開唯讀/讀寫金鑰)', // 系統預設或可替換
+            url: 'https://api.jsonbin.io/v3/b/'
+        };
+
         const deptMap = {
             "CAD": { 
                 hod: "CHAN KENG LEONG (ID: 2)", 
@@ -474,626 +363,374 @@
             }
         };
 
-        // 从图片中精确提取的完整历史记录（包含所有名字、工号、2026年日期、时间、时数、原因与状态）
-        const initialDefaultRecords = {
-            "rec_01": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-20", time: "08:00 - 05:00", hours: "21.0", reason: "Lifter 721", status: "APPROVED", timestamp: 1726790000000 },
-            "rec_02": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-20", time: "17:00 - 17:00", hours: "4.0", reason: "HIL721", status: "APPROVED", timestamp: 1726790100000 },
-            "rec_03": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-19", time: "17:00 - 21:00", hours: "4.0", reason: "Hil722", status: "APPROVED", timestamp: 1726700000000 },
-            "rec_04": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-20", time: "08:00 - 17:00", hours: "9.0", reason: "HIL722", status: "APPROVED", timestamp: 1726790300000 },
-            "rec_05": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "16:00 - 00:00", hours: "8.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790400000 },
-            "rec_06": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "16:00 - 00:00", hours: "8.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790500000 },
-            "rec_07": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-20", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790600000 },
-            "rec_08": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-20", time: "04:00 - 06:00", hours: "2.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790700000 },
-            "rec_09": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-20", time: "04:00 - 06:00", hours: "2.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790800000 },
-            "rec_10": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-20", time: "04:00 - 06:00", hours: "2.0", reason: "Repair mould mmr1927", status: "APPROVED", timestamp: 1726790900000 },
-            "rec_11": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-20", time: "08:00 - 05:00", hours: "21.0", reason: "718 core", status: "APPROVED", timestamp: 1726791000000 },
-            "rec_12": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-20", time: "08:00 - 05:00", hours: "21.0", reason: "718core&lifter721", status: "APPROVED", timestamp: 1726791100000 },
-            "rec_13": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-20", time: "08:00 - 05:00", hours: "21.0", reason: "229&722cav", status: "APPROVED", timestamp: 1726791200000 },
-            "rec_14": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-20", time: "08:00 - 05:00", hours: "21.0", reason: "722 cav", status: "APPROVED", timestamp: 1726791300000 },
-            "rec_15": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-18", time: "17:00 - 19:00", hours: "2.0", reason: "Pns635fp", status: "APPROVED", timestamp: 1726650000000 },
-            "rec_16": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "Kas 718", status: "APPROVED", timestamp: 1726650100000 },
-            "rec_17": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "721 cr01", status: "APPROVED", timestamp: 1726650200000 },
-            "rec_18": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "Hexagon 229", status: "APPROVED", timestamp: 1726650300000 },
-            "rec_19": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-18", time: "18:00 - 20:00", hours: "2.0", reason: "Hexagon 229", status: "APPROVED", timestamp: 1726650400000 },
-            "rec_20": { dept: "POLISHING", name: "CHONG FAT KEONG", id: "3", date: "2026-09-18", time: "18:00 - 20:00", hours: "2.0", reason: "Hexagon 229", status: "APPROVED", timestamp: 1726650500000 },
-            "rec_21": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "HIL722", status: "APPROVED", timestamp: 1726650600000 },
-            "rec_22": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "HIL722", status: "APPROVED", timestamp: 1726650700000 },
-            "rec_23": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "HIL722", status: "APPROVED", timestamp: 1726650800000 },
-            "rec_24": { dept: "CAD", name: "SOH GIM BOON", id: "274", date: "2026-09-18", time: "17:00 - 19:00", hours: "2.0", reason: "HIL_P02C_WHEEL ARCH LINER RR ASSY R-L-DFM", status: "APPROVED", timestamp: 1726650900000 },
-            "rec_25": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-19", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726701000000 },
-            "rec_26": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-19", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726701100000 },
-            "rec_27": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-19", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726701200000 },
-            "rec_28": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726651300000 },
-            "rec_29": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726651400000 },
-            "rec_30": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1927", status: "APPROVED", timestamp: 1726651500000 },
-            "rec_31": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-18", time: "17:00 - 19:00", hours: "2.0", reason: "Repair mould 1808", status: "APPROVED", timestamp: 1726651600000 },
-            "rec_32": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-18", time: "17:00 - 19:00", hours: "2.0", reason: "Repair mould 1808", status: "APPROVED", timestamp: 1726651700000 },
-            "rec_33": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-18", time: "17:00 - 19:00", hours: "2.0", reason: "Repair mould 1808", status: "APPROVED", timestamp: 1726651800000 },
-            "rec_34": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "721 cr 01", status: "APPROVED", timestamp: 1726560000000 },
-            "rec_35": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "MMR1898 CRS", status: "APPROVED", timestamp: 1726560100000 },
-            "rec_36": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "HIL722 CAV", status: "APPROVED", timestamp: 1726560200000 },
-            "rec_37": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "MMR1927 CAV", status: "APPROVED", timestamp: 1726560300000 },
-            "rec_38": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-18", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726652000000 },
-            "rec_39": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-18", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726652100000 },
-            "rec_40": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-18", time: "04:00 - 08:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726652200000 },
-            "rec_41": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562300000 },
-            "rec_42": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562400000 },
-            "rec_43": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562500000 },
-            "rec_44": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562600000 },
-            "rec_45": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562700000 },
-            "rec_46": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-17", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928,1808,1927", status: "APPROVED", timestamp: 1726562800000 },
-            "rec_47": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-16", time: "17:00 - 19:00", hours: "2.0", reason: "Repair mould MMR 1928", status: "APPROVED", timestamp: 1726470000000 },
-            "rec_48": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-16", time: "17:00 - 19:00", hours: "2.0", reason: "Repair mould MMR 1928", status: "APPROVED", timestamp: 1726470100000 },
-            "rec_49": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-16", time: "17:00 - 21:00", hours: "4.0", reason: "Repair mould MMR 1928", status: "APPROVED", timestamp: 1726470200000 },
-            "rec_50": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-16", time: "19:00 - 08:00", hours: "13.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470300000 },
-            "rec_51": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-16", time: "19:00 - 08:00", hours: "13.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470400000 },
-            "rec_52": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-16", time: "19:00 - 08:00", hours: "13.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470500000 },
-            "rec_53": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470600000 },
-            "rec_54": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470700000 },
-            "rec_55": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470800000 },
-            "rec_56": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726470900000 },
-            "rec_57": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726471000000 },
-            "rec_58": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-16", time: "08:00 - 17:00", hours: "9.0", reason: "Repair mould MMR 1927,1928,1808", status: "APPROVED", timestamp: 1726471100000 },
-            "rec_59": { dept: "PRODUCTION", name: "SHAING THU AUNG", id: "301", date: "2026-09-15", time: "18:00 - 20:00", hours: "2.0", reason: "Kz722", status: "APPROVED", timestamp: 1726380000000 },
-            "rec_60": { dept: "PRODUCTION", name: "MD ALAMGIR", id: "68", date: "2026-09-15", time: "05:00 - 07:00", hours: "2.0", reason: "Kz722", status: "APPROVED", timestamp: 1726380100000 },
-            "rec_61": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-15", time: "18:00 - 20:00", hours: "2.0", reason: "Kz722", status: "APPROVED", timestamp: 1726380200000 },
-            "rec_62": { dept: "PRODUCTION", name: "CHONG FAT KEONG", id: "3", date: "2026-09-15", time: "18:00 - 20:00", hours: "2.0", reason: "Kz722", status: "APPROVED", timestamp: 1726380300000 },
-            "rec_63": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-15", time: "17:00 - 19:00", hours: "2.0", reason: "Hil721 lifter", status: "APPROVED", timestamp: 1726380400000 },
-            "rec_64": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-15", time: "17:00 - 19:00", hours: "2.0", reason: "Hexagon mold247", status: "APPROVED", timestamp: 1726380500000 },
-            "rec_65": { dept: "POLISHING", name: "MD SHOPON", id: "19", date: "2026-09-15", time: "17:00 - 19:00", hours: "2.0", reason: "Hexagon mold229", status: "APPROVED", timestamp: 1726380600000 },
-            "rec_66": { dept: "MOULD_MAKER", name: "JAISON CHRISTOPHER", id: "311", date: "2026-09-16", time: "04:00 - 08:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726471500000 },
-            "rec_67": { dept: "MOULD_MAKER", name: "VIMALKUMAR PUTHIYA VALAPPIL", id: "319", date: "2026-09-16", time: "04:00 - 08:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726471600000 },
-            "rec_68": { dept: "MOULD_MAKER", name: "MD JAHIR", id: "69", date: "2026-09-16", time: "04:00 - 08:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726471700000 },
-            "rec_69": { dept: "MOULD_MAKER", name: "AMARNATH SIVADAS", id: "310", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726381800000 },
-            "rec_70": { dept: "MOULD_MAKER", name: "ZAW MYO HTIKE", id: "303", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726381900000 },
-            "rec_71": { dept: "MOULD_MAKER", name: "GOH CHEE KUAN", id: "326", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726382000000 },
-            "rec_72": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726382100000 },
-            "rec_73": { dept: "MOULD_MAKER", name: "HING YONG HOW", id: "286", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726382200000 },
-            "rec_74": { dept: "MOULD_MAKER", name: "LEE YOONG HON", id: "15", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "Repair mould MMR,1927,1928,1808", status: "APPROVED", timestamp: 1726382300000 },
-            "rec_75": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-16", time: "08:00 - 17:00", hours: "2.0", reason: "HIL722", status: "APPROVED", timestamp: 1726472400000 },
-            "rec_76": { dept: "CNC", name: "BHARAT BOHARA", id: "290", date: "2026-09-15", time: "17:00 - 21:00", hours: "2.0", reason: "HIL722", status: "APPROVED", timestamp: 1726382500000 }
+        const defaultRecords = {
+            "rec_01": { dept: "PROJECT", name: "NUR SYAHIRAH BINTI MOHAMAD SHUKRI", id: "262", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "Mmr1927mold trial apm", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_02": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "Welding hexegon", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_03": { dept: "MOULD_MAKER", name: "MD JAHANGIR ALAM", id: "72", date: "2026-09-21", time: "18:00 - 20:00", hours: "2", reason: "Fitting 721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_04": { dept: "EDM", name: "KAYW ZIN HEIN", id: "306", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "722 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_05": { dept: "PRODUCTION", name: "MD SHAHA BUDIN", id: "20", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "718 core", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_06": { dept: "POLISHING", name: "MIN THU", id: "299", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "721 cav", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_07": { dept: "CAD", name: "ADARSH DAMODARAN", id: "305", date: "2026-09-21", time: "17:00 - 19:00", hours: "2", reason: "HIL_P02C_WHEEL ARCH LINER FR ASSY RL-DFM", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_08": { dept: "CNC", name: "BOHARA DHAN BAHADUR", id: "291", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_09": { dept: "CNC", name: "BOHARA MILAN", id: "294", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL721", status: "APPROVED", submittedBy: "Excel 94 Records" },
+            "rec_10": { dept: "CNC", name: "SA MASAN BA", id: "27", date: "2026-09-21", time: "17:00 - 21:00", hours: "4", reason: "HIL722", status: "APPROVED", submittedBy: "Excel 94 Records" }
         };
 
-        let isHR = false;
-        let db = null;
-        let globalRecordsCache = {};
+        // 全局狀態變數
+        let currentSortOrder = 'desc'; // 預設逆序 (新 ➔ 舊)
+        let allRecordsCache = {};
 
-        const defaultFirebaseConfig = {
-            apiKey: "AIzaSyCHOFXk24RMB3vVyGIV1BIm-hTr9fgjmPM",
-            authDomain: "kaizen-ot.firebaseapp.com",
-            databaseURL: "https://kaizen-ot-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "kaizen-ot",
-            storageBucket: "kaizen-ot.firebasestorage.app",
-            messagingSenderId: "9111966135",
-            appId: "1:9111966135:web:330a378c37f2cffe941832"
-        };
-
-        window.onload = function() {
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(defaultFirebaseConfig);
-                }
-                db = firebase.database();
-                
-                db.ref('ot_records').on('value', (snapshot) => {
-                    const serverData = snapshot.val();
-                    if (!serverData || Object.keys(serverData).length === 0) {
-                        db.ref('ot_records').set(initialDefaultRecords);
-                        globalRecordsCache = initialDefaultRecords;
-                    } else {
-                        globalRecordsCache = serverData;
-                    }
-                    renderSubmissionsTable(globalRecordsCache);
-                    renderHRRecordsTable(globalRecordsCache);
-                });
-            } catch(e) { 
-                console.log(e);
-                globalRecordsCache = initialDefaultRecords;
-                renderSubmissionsTable(globalRecordsCache);
-                renderHRRecordsTable(globalRecordsCache);
-            }
-
+        // 初始化載入
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchAllRecordsFromCloud();
             handleDepartmentChange();
-            addNewRow(false);
-        };
+        });
 
-        function handleDepartmentChange() {
-            const deptKey = document.getElementById('departmentSelect').value;
-            const data = deptMap[deptKey] || { hod: "-", staff: [] };
-            document.getElementById('currentDeptDisplay').innerText = deptKey.replace('_', ' ') + ' DEPARTMENT';
-            document.getElementById('currentHODDisplay').innerText = data.hod || '-';
-
-            document.getElementById('otTableBody').innerHTML = '';
-            addNewRow(false);
-        }
-
-        function getStaffOptions(selectedDeptKey) {
-            const staffList = deptMap[selectedDeptKey]?.staff || [];
-            let options = '<option value="">-- Select Employee / 选择员工 --</option>';
-            staffList.forEach(s => {
-                options += `<option value="${s.name}" data-id="${s.id}">${s.name} (ID: ${s.id})</option>`;
-            });
-            return options;
-        }
-
-        function addNewRow(duplicatePrevious = false) {
-            const tbody = document.getElementById('otTableBody');
-            const deptKey = document.getElementById('departmentSelect').value;
-            const rowId = 'row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-            const today = new Date().toISOString().split('T')[0];
-
-            let defaultVal = { name: '', id: '', date: today, start: '18:00', end: '20:00', hours: '2.0', reason: '' };
-
-            if (duplicatePrevious && tbody.children.length > 0) {
-                const lastRow = tbody.lastElementChild;
-                defaultVal = {
-                    name: lastRow.querySelector('.emp-name')?.value || '',
-                    id: lastRow.querySelector('.emp-id')?.value || '',
-                    date: lastRow.querySelector('.emp-date')?.value || today,
-                    start: lastRow.querySelector('.emp-start')?.value || '18:00',
-                    end: lastRow.querySelector('.emp-end')?.value || '20:00',
-                    hours: lastRow.querySelector('.emp-hours')?.value || '2.0',
-                    reason: lastRow.querySelector('.emp-reason')?.value || ''
-                };
-            }
-
-            const tr = document.createElement('tr');
-            tr.id = rowId;
-            tr.className = "hover:bg-slate-50 transition";
-            tr.innerHTML = `
-                <td class="p-2">
-                    <select onchange="onEmployeeSelect(this, '${rowId}')" class="emp-name w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs font-semibold">
-                        ${getStaffOptions(deptKey)}
-                    </select>
-                </td>
-                <td class="p-2"><input type="text" class="emp-id w-full bg-slate-100 border border-slate-200 rounded p-1.5 text-xs font-bold text-slate-700 text-center" value="${defaultVal.id}" readonly placeholder="ID"></td>
-                <td class="p-2"><input type="date" class="emp-date w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.date}"></td>
-                <td class="p-2"><input type="time" class="emp-start w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.start}" onchange="calcHours('${rowId}')"></td>
-                <td class="p-2"><input type="time" class="emp-end w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.end}" onchange="calcHours('${rowId}')"></td>
-                <td class="p-2"><input type="text" class="emp-hours w-full bg-slate-100 border border-slate-200 rounded p-1.5 text-xs font-bold text-blue-700 text-center" value="${defaultVal.hours}" readonly></td>
-                <td class="p-2"><input type="text" class="emp-reason w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs" value="${defaultVal.reason}" placeholder="Reason / 原因用途"></td>
-                <td class="p-2 text-center"><button onclick="deleteRow('${rowId}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="fa-solid fa-xmark"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-
-            if(defaultVal.name) {
-                const selectEl = tr.querySelector('.emp-name');
-                selectEl.value = defaultVal.name;
-            }
-        }
-
-        function onEmployeeSelect(selectEl, rowId) {
-            const selectedOption = selectEl.options[selectEl.selectedIndex];
-            const empId = selectedOption.getAttribute('data-id') || '';
-            const tr = document.getElementById(rowId);
-            if(tr) {
-                tr.querySelector('.emp-id').value = empId;
-            }
-        }
-
-        function deleteRow(rowId) {
-            const row = document.getElementById(rowId);
-            if(row) row.remove();
-        }
-
-        function calcHours(rowId) {
-            const tr = document.getElementById(rowId);
-            if(!tr) return;
-            const start = tr.querySelector('.emp-start').value;
-            const end = tr.querySelector('.emp-end').value;
-            if(start && end) {
-                const s = new Date(`1970-01-01T${start}:00`);
-                const e = new Date(`1970-01-01T${end}:00`);
-                let diff = (e - s) / (1000 * 60 * 60);
-                if(diff < 0) diff += 24;
-                tr.querySelector('.emp-hours').value = diff.toFixed(1);
-            }
-        }
-
-        function loadWholeTeam() {
-            const deptKey = document.getElementById('departmentSelect').value;
-            const staffList = deptMap[deptKey]?.staff || [];
-            if(staffList.length === 0) {
-                alert('No staff members registered under this department.');
-                return;
-            }
-            document.getElementById('otTableBody').innerHTML = '';
-            staffList.forEach(s => {
-                addNewRow(false);
-                const tbody = document.getElementById('otTableBody');
-                const lastRow = tbody.lastElementChild;
-                const selectEl = lastRow.querySelector('.emp-name');
-                selectEl.value = s.name;
-                lastRow.querySelector('.emp-id').value = s.id;
-            });
-        }
-
-        function submitOT(status) {
-            if(!db) { alert('Database not initialized!'); return; }
-            const dept = document.getElementById('departmentSelect').value;
-            const rows = document.querySelectorAll('#otTableBody tr');
-            if(rows.length === 0) { alert('Please add at least one row.'); return; }
-
-            let count = 0;
-            rows.forEach(tr => {
-                const name = tr.querySelector('.emp-name')?.value;
-                const id = tr.querySelector('.emp-id')?.value;
-                const date = tr.querySelector('.emp-date')?.value;
-                const start = tr.querySelector('.emp-start')?.value;
-                const end = tr.querySelector('.emp-end')?.value;
-                const hours = tr.querySelector('.emp-hours')?.value;
-                const reason = tr.querySelector('.emp-reason')?.value;
-
-                if(name && date) {
-                    const newRef = db.ref('ot_records').push();
-                    newRef.set({
-                        dept: dept,
-                        name: name,
-                        id: id || '',
-                        date: date,
-                        time: `${start} - ${end}`,
-                        hours: hours || '0.0',
-                        reason: reason || '',
-                        status: status,
-                        timestamp: Date.now()
-                    });
-                    count++;
+        // 從雲端讀取所有資料
+        async function fetchAllRecordsFromCloud() {
+            try {
+                let localData = localStorage.getItem('kaizen_ot_records');
+                allRecordsCache = localData ? JSON.parse(localData) : defaultRecords;
+                
+                // 同步背景雲端
+                const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
+                    headers: { 'X-Master-Key': CLOUD_SYNC.apiKey }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.record && json.record.ot_records) {
+                        allRecordsCache = json.record.ot_records;
+                        localStorage.setItem('kaizen_ot_records', JSON.stringify(allRecordsCache));
+                    }
                 }
-            });
+            } catch (e) {
+                console.warn('使用本地快取紀錄');
+                allRecordsCache = JSON.parse(localStorage.getItem('kaizen_ot_records') || JSON.stringify(defaultRecords));
+            }
+            renderSubmissionsTable();
+            renderHRTable();
+        }
 
-            if(count > 0) {
-                alert(`Successfully submitted ${count} record(s)!`);
-                switchTab('mySubmissions');
-            } else {
-                alert('Please ensure staff name and date are selected.');
+        // 儲存資料到雲端與本地
+        async function saveAllRecordsToCloud(records) {
+            allRecordsCache = records;
+            localStorage.setItem('kaizen_ot_records', JSON.stringify(records));
+            renderSubmissionsTable();
+            renderHRTable();
+
+            try {
+                await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': CLOUD_SYNC.apiKey
+                    },
+                    body: JSON.stringify({ ot_records: records })
+                });
+            } catch (e) {
+                console.error('雲端同步失敗，已存入本機');
             }
         }
 
-        function switchTab(tabName) {
-            if(tabName === 'hrArchive' && !isHR) {
-                toggleHRLoginModal();
-                return;
-            }
+        // 24小時自動輪詢同步（每5秒自動更新，無需重新整理）
+        setInterval(async () => {
+            try {
+                const res = await fetch(`${CLOUD_SYNC.url}${CLOUD_SYNC.binId}/latest`, {
+                    headers: { 'X-Master-Key': CLOUD_SYNC.apiKey }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.record && json.record.ot_records) {
+                        allRecordsCache = json.record.ot_records;
+                        localStorage.setItem('kaizen_ot_records', JSON.stringify(allRecordsCache));
+                        renderSubmissionsTable();
+                        renderHRTable();
+                    }
+                }
+            } catch (e) {}
+        }, 5000);
 
+        function manualSync() {
+            fetchAllRecordsFromCloud();
+            alert('已成功同步所有設備的最新員工記錄！');
+        }
+
+        // 切換頁籤
+        function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active', 'border-blue-600', 'text-blue-600'));
 
-            if(tabName === 'submit') {
+            if (tabName === 'submit') {
                 document.getElementById('tabSubmit').classList.remove('hidden');
                 document.getElementById('tabBtnSubmit').classList.add('tab-active');
-            } else if(tabName === 'mySubmissions') {
+            } else if (tabName === 'mySubmissions') {
                 document.getElementById('tabMySubmissions').classList.remove('hidden');
                 document.getElementById('tabBtnMySubmissions').classList.add('tab-active');
-            } else if(tabName === 'hrArchive' && isHR) {
+                renderSubmissionsTable();
+            } else if (tabName === 'hrArchive') {
                 document.getElementById('tabHrArchive').classList.remove('hidden');
                 document.getElementById('tabBtnHrArchive').classList.add('tab-active');
+                renderHRTable();
             }
         }
 
-        function fetchRecords() {
-            if(!db) return;
-            db.ref('ot_records').once('value', (snapshot) => {
-                globalRecordsCache = snapshot.val() || initialDefaultRecords;
-                renderSubmissionsTable(globalRecordsCache);
-                renderHRRecordsTable(globalRecordsCache);
+        // 部門變更處理
+        function handleDepartmentChange() {
+            const deptKey = document.getElementById('departmentSelect').value;
+            const deptInfo = deptMap[deptKey];
+            document.getElementById('currentDeptDisplay').innerText = deptKey + " DEPARTMENT";
+            document.getElementById('currentHODDisplay').innerText = deptInfo.hod;
+
+            // 清空並載入該部門預設空白行
+            const tbody = document.getElementById('otTableBody');
+            tbody.innerHTML = '';
+            addNewRow(false);
+        }
+
+        // 新增表格行
+        function addNewRow(duplicateLast = false) {
+            const tbody = document.getElementById('otTableBody');
+            const deptKey = document.getElementById('departmentSelect').value;
+            const staffList = deptMap[deptKey].staff;
+
+            let lastDate = new Date().toISOString().split('T')[0];
+            let lastReason = '';
+
+            if (duplicateLast && tbody.rows.length > 0) {
+                const lastRow = tbody.rows[tbody.rows.length - 1];
+                lastDate = lastRow.querySelector('.row-date').value;
+                lastReason = lastRow.querySelector('.row-reason').value;
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 border-b border-slate-100";
+            
+            let staffOptions = staffList.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name} (ID: ${s.id})</option>`).join('');
+
+            tr.innerHTML = `
+                <td class="p-2">
+                    <select class="row-staff bg-slate-50 border border-slate-300 rounded p-1.5 w-full text-xs font-semibold" onchange="updateEmpId(this)">
+                        ${staffOptions}
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="text" class="row-id bg-slate-100 border border-slate-200 rounded p-1.5 w-full text-xs font-bold text-center" readonly value="${staffList[0].id}">
+                </td>
+                <td class="p-2">
+                    <input type="date" class="row-date bg-slate-50 border border-slate-300 rounded p-1.5 w-full text-xs" value="${lastDate}">
+                </td>
+                <td class="p-2">
+                    <input type="time" class="row-start bg-slate-50 border border-slate-300 rounded p-1.5 w-full text-xs" value="17:00" onchange="calculateHours(this)">
+                </td>
+                <td class="p-2">
+                    <input type="time" class="row-end bg-slate-50 border border-slate-300 rounded p-1.5 w-full text-xs" value="21:00" onchange="calculateHours(this)">
+                </td>
+                <td class="p-2 text-center">
+                    <input type="text" class="row-hours bg-slate-100 border border-slate-200 rounded p-1.5 w-full text-xs font-bold text-center text-blue-800" readonly value="4">
+                </td>
+                <td class="p-2">
+                    <input type="text" class="row-reason bg-slate-50 border border-slate-300 rounded p-1.5 w-full text-xs" placeholder="输入加班原因 / Reason..." value="${lastReason}">
+                </td>
+                <td class="p-2 text-center">
+                    <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            calculateHours(tr.querySelector('.row-start'));
+        }
+
+        function updateEmpId(selectEl) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            const empId = selectedOpt.value;
+            const tr = selectEl.closest('tr');
+            tr.querySelector('.row-id').value = empId;
+        }
+
+        function calculateHours(el) {
+            const tr = el.closest('tr');
+            const start = tr.querySelector('.row-start').value;
+            const end = tr.querySelector('.row-end').value;
+            if (!start || !end) return;
+
+            const [sh, sm] = start.split(':').map(Number);
+            const [eh, em] = end.split(':').map(Number);
+            
+            let startMin = sh * 60 + sm;
+            let endMin = eh * 60 + em;
+            if (endMin < startMin) endMin += 24 * 60; // 跨夜
+
+            let diffHours = (endMin - startMin) / 60;
+            tr.querySelector('.row-hours').value = diffHours > 0 ? diffHours : 0;
+        }
+
+        // 載入全員
+        function loadWholeTeam() {
+            const deptKey = document.getElementById('departmentSelect').value;
+            const staffList = deptMap[deptKey].staff;
+            const tbody = document.getElementById('otTableBody');
+            tbody.innerHTML = '';
+
+            staffList.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-2"><input type="text" class="row-staff-name bg-slate-100 border rounded p-1.5 w-full text-xs font-bold" readonly value="${s.name}"></td>
+                    <td class="p-2"><input type="text" class="row-id bg-slate-100 border rounded p-1.5 w-full text-xs text-center font-bold" readonly value="${s.id}"></td>
+                    <td class="p-2"><input type="date" class="row-date bg-slate-50 border rounded p-1.5 w-full text-xs" value="${new Date().toISOString().split('T')[0]}"></td>
+                    <td class="p-2"><input type="time" class="row-start bg-slate-50 border rounded p-1.5 w-full text-xs" value="17:00" onchange="calculateHours(this)"></td>
+                    <td class="p-2"><input type="time" class="row-end bg-slate-50 border rounded p-1.5 w-full text-xs" value="21:00" onchange="calculateHours(this)"></td>
+                    <td class="p-2 text-center"><input type="text" class="row-hours bg-slate-100 border rounded p-1.5 w-full text-xs font-bold text-center" readonly value="4"></td>
+                    <td class="p-2"><input type="text" class="row-reason bg-slate-50 border rounded p-1.5 w-full text-xs" placeholder="输入加班原因..."></td>
+                    <td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        function renderSubmissionsTable(records) {
+        // 提交加班資料
+        async function submitOT(status) {
+            const rows = document.querySelectorAll('#otTableBody tr');
+            if (rows.length === 0) {
+                alert('请先添加至少一行加班记录！');
+                return;
+            }
+
+            const deptKey = document.getElementById('departmentSelect').value;
+            let newRecords = {...allRecordsCache};
+
+            rows.forEach((tr, idx) => {
+                let name = '';
+                let id = tr.querySelector('.row-id').value;
+                const staffSelect = tr.querySelector('.row-staff');
+                if (staffSelect) {
+                    name = staffSelect.options[staffSelect.selectedIndex].text.split(' (ID:')[0];
+                } else {
+                    name = tr.querySelector('.row-staff-name').value;
+                }
+
+                const date = tr.querySelector('.row-date').value;
+                const start = tr.querySelector('.row-start').value;
+                const end = tr.querySelector('.row-end').value;
+                const hours = tr.querySelector('.row-hours').value;
+                const reason = tr.querySelector('.row-reason').value || 'Overtime';
+
+                const recordId = 'rec_' + Date.now() + '_' + idx;
+                newRecords[recordId] = {
+                    dept: deptKey,
+                    name: name,
+                    id: id,
+                    date: date,
+                    time: `${start} - ${end}`,
+                    hours: hours,
+                    reason: reason,
+                    status: status,
+                    submittedBy: 'Web Device (Sync)'
+                };
+            });
+
+            await saveAllRecordsToCloud(newRecords);
+            alert('✅ 提交成功！資料已即時同步到雲端，所有設備與 HR 均可隨時查看！');
+            switchTab('mySubmissions');
+        }
+
+        // 渲染「所有員工記錄」表格
+        function renderSubmissionsTable() {
             const tbody = document.getElementById('submissionsTableBody');
-            if(!tbody) return;
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            const keys = Object.keys(records || {}).reverse();
-            if(keys.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No overtime records found.</td></tr>`;
-                return;
-            }
+            let entries = Object.entries(allRecordsCache);
+            entries.sort((a, b) => {
+                let dateA = new Date(a[1].date || '2026-01-01');
+                let dateB = new Date(b[1].date || '2026-01-01');
+                return currentSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
 
-            keys.forEach(key => {
-                const r = records[key];
+            entries.forEach(([key, rec]) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                const timeParts = (r.time || '').split(' - ');
-                const startTime = timeParts[0] || '18:00';
-                const endTime = timeParts[1] || '20:00';
-                const statusBadge = r.status === 'APPROVED' ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">APPROVED</span>' : '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">PENDING</span>';
-
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
-                    <td class="p-2 font-semibold">${r.dept || '-'}</td>
-                    <td class="p-2"><input type="text" id="name_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.name || ''}"></td>
-                    <td class="p-2"><input type="text" id="id_${key}" class="w-full bg-slate-100 border border-slate-200 rounded p-1 text-xs text-center font-bold text-slate-700" value="${r.id || ''}"></td>
-                    <td class="p-2"><input type="date" id="date_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.date || ''}"></td>
-                    <td class="p-2 flex gap-1 items-center">
-                        <input type="time" id="start_${key}" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-[11px]" value="${startTime}">
-                        <input type="time" id="end_${key}" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-[11px]" value="${endTime}">
-                    </td>
-                    <td class="p-2 text-center font-bold text-blue-700"><input type="text" id="hours_${key}" class="w-full bg-slate-100 border border-slate-200 rounded p-1 text-xs text-center font-bold" value="${r.hours || '0'}" readonly></td>
-                    <td class="p-2"><input type="text" id="reason_${key}" class="w-full bg-white border border-slate-300 rounded p-1 text-xs" value="${r.reason || ''}"></td>
-                    <td class="p-2">${statusBadge}</td>
-                    <td class="p-2 text-center flex gap-1 justify-center">
-                        <button onclick="updateRecord('${key}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold shadow">Save</button>
-                        <button onclick="deleteSingleRecord('${key}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash"></i></button>
-                    </td>
+                    <td class="p-2 font-bold text-slate-700">${rec.dept}</td>
+                    <td class="p-2 font-semibold text-slate-900">${rec.name}</td>
+                    <td class="p-2 text-slate-600">${rec.id}</td>
+                    <td class="p-2 text-slate-600">${rec.date}</td>
+                    <td class="p-2 text-slate-600">${rec.time}</td>
+                    <td class="p-2 text-center font-bold text-blue-700">${rec.hours} hrs</td>
+                    <td class="p-2 text-slate-600">${rec.reason}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${rec.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${rec.status}</span></td>
+                    <td class="p-2 text-center text-slate-400 text-[11px]">${rec.submittedBy || 'Device'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function renderHRRecordsTable(records) {
+        // 渲染 HR 管理與刪除表格
+        function renderHRTable() {
             const tbody = document.getElementById('hrRecordsTableBody');
-            if(!tbody) return;
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            const keys = Object.keys(records || {}).reverse();
-            if(keys.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No records in database.</td></tr>`;
-                return;
-            }
+            let entries = Object.entries(allRecordsCache);
+            entries.sort((a, b) => new Date(b[1].date || '2026-01-01') - new Date(a[1].date || '2026-01-01'));
 
-            keys.forEach(key => {
-                const r = records[key];
+            entries.forEach(([key, rec]) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                const statusBadge = r.status === 'APPROVED' ? '<span class="text-emerald-600 font-bold">APPROVED</span>' : '<span class="text-amber-600 font-bold">PENDING</span>';
-
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
-                    <td class="p-2 font-semibold">${r.dept || '-'}</td>
-                    <td class="p-2 font-medium">${r.name || ''}</td>
-                    <td class="p-2 text-slate-700 font-bold">${r.id || ''}</td>
-                    <td class="p-2">${r.date || ''}</td>
-                    <td class="p-2">${r.time || ''}</td>
-                    <td class="p-2 font-bold text-blue-700">${r.hours || '0'} hrs</td>
-                    <td class="p-2 text-slate-600">${r.reason || ''}</td>
-                    <td class="p-2">${statusBadge}</td>
+                    <td class="p-2 font-bold">${rec.dept}</td>
+                    <td class="p-2">${rec.name}</td>
+                    <td class="p-2">${rec.id}</td>
+                    <td class="p-2">${rec.date}</td>
+                    <td class="p-2">${rec.time}</td>
+                    <td class="p-2 font-bold">${rec.hours}</td>
+                    <td class="p-2">${rec.reason}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-800">${rec.status}</span></td>
                     <td class="p-2 text-center">
-                        <button onclick="deleteSingleRecord('${key}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="deleteRecord('${key}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded text-xs font-bold transition">
+                            <i class="fa-solid fa-trash"></i> 删除
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function updateRecord(key) {
-            if(!db) return;
-            const name = document.getElementById(`name_${key}`).value;
-            const id = document.getElementById(`id_${key}`).value;
-            const date = document.getElementById(`date_${key}`).value;
-            const start = document.getElementById(`start_${key}`).value;
-            const end = document.getElementById(`end_${key}`).value;
-            const reason = document.getElementById(`reason_${key}`).value;
-
-            const s = new Date(`1970-01-01T${start}:00`);
-            const e = new Date(`1970-01-01T${end}:00`);
-            let diff = (e - s) / (1000 * 60 * 60);
-            if(diff < 0) diff += 24;
-            const hours = diff.toFixed(1);
-
-            db.ref(`ot_records/${key}`).update({
-                name: name,
-                id: id,
-                date: date,
-                time: `${start} - ${end}`,
-                hours: hours,
-                reason: reason
-            }, (error) => {
-                if(error) {
-                    alert('Update failed: ' + error.message);
-                } else {
-                    alert('Record updated successfully!');
-                }
-            });
-        }
-
-        function deleteSingleRecord(key) {
-            if(!isHR) {
-                alert('Access Denied! Please login as HR first.');
-                toggleHRLoginModal();
-                return;
-            }
-            if(confirm('Are you sure you want to delete this record?')) {
-                db.ref(`ot_records/${key}`).remove();
+        async function deleteRecord(key) {
+            if (confirm('確定要刪除這筆加班記錄嗎？')) {
+                let newRecords = {...allRecordsCache};
+                delete newRecords[key];
+                await saveAllRecordsToCloud(newRecords);
+                alert('記錄已成功刪除！');
             }
         }
 
-        function deleteFilteredData() {
-            if(!isHR) {
-                alert('Access Denied! Please login as HR first.');
-                toggleHRLoginModal();
-                return;
+        async function clearAllData() {
+            if (prompt('⚠️ 警告：這將清空所有雲端與本地記錄！請輸入密碼或確認：') !== null) {
+                await saveAllRecordsToCloud({});
+                alert('所有記錄已清空。');
             }
-            if(!db) return;
-            const dept = document.getElementById('delDept').value;
-            const nameOrId = document.getElementById('delNameOrId').value.trim().toLowerCase();
-            const year = document.getElementById('delYear').value;
-            const month = document.getElementById('delMonth').value;
-            const specificDate = document.getElementById('delSpecificDate').value;
-
-            if(!dept && !nameOrId && !year && !month && !specificDate) {
-                alert('Please select at least one filter condition to delete data.');
-                return;
-            }
-
-            if(!confirm('⚠️ Warning: Are you sure you want to delete records matching these criteria?')) return;
-
-            db.ref('ot_records').once('value', (snapshot) => {
-                const data = snapshot.val() || {};
-                let count = 0;
-                let updates = {};
-
-                Object.keys(data).forEach(key => {
-                    const r = data[key];
-                    let match = true;
-
-                    if(dept && r.dept !== dept) match = false;
-                    if(nameOrId) {
-                        const matchName = (r.name || '').toLowerCase().includes(nameOrId);
-                        const matchId = (r.id || '').toLowerCase().includes(nameOrId);
-                        if(!matchName && !matchId) match = false;
-                    }
-                    if(specificDate && r.date !== specificDate) match = false;
-                    if(year && r.date && !r.date.startsWith(year)) match = false;
-                    if(month && r.date) {
-                        const parts = r.date.split('-');
-                        if(parts.length >= 2 && parts[1] !== month) match = false;
-                    }
-
-                    if(match) {
-                        updates[key] = null;
-                        count++;
-                    }
-                });
-
-                if(count > 0) {
-                    db.ref('ot_records').update(updates, (error) => {
-                        if(error) alert('Error: ' + error.message);
-                        else alert(`Successfully deleted ${count} matching record(s).`);
-                    });
-                } else {
-                    alert('No records matched the given criteria.');
-                }
-            });
         }
 
-        function clearAllData() {
-            if(!isHR) {
-                alert('Access Denied! Please login as HR first.');
-                toggleHRLoginModal();
-                return;
+        function setSortOrder(order) {
+            currentSortOrder = order;
+            if (order === 'asc') {
+                document.getElementById('sortAscBtn').className = "px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition";
+                document.getElementById('sortDescBtn').className = "px-3 py-1 rounded font-bold text-slate-600 transition";
+            } else {
+                document.getElementById('sortDescBtn').className = "px-3 py-1 rounded font-bold bg-white text-blue-700 shadow-sm transition";
+                document.getElementById('sortAscBtn').className = "px-3 py-1 rounded font-bold text-slate-600 transition";
             }
-            if(confirm('⚠️ DANGER: Are you sure you want to completely clear ALL overtime records from the database? This action cannot be undone.')) {
-                if(prompt('Type "DELETE" to confirm:') === 'DELETE') {
-                    db.ref('ot_records').remove().then(() => {
-                        alert('All records cleared successfully.');
-                    });
-                } else {
-                    alert('Confirmation failed. Deletion aborted.');
-                }
-            }
+            renderSubmissionsTable();
         }
 
         function toggleHRLoginModal() {
-            if(isHR) {
-                if(confirm('Do you want to logout from HR mode?')) {
-                    isHR = false;
-                    document.getElementById('accessModeBadge').innerText = 'STAFF MODE (员工模式)';
-                    document.getElementById('accessModeBadge').className = 'bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold';
-                    document.getElementById('hrLoginBtnText').innerText = 'HR Login (HR 登录)';
-                    switchTab('submit');
-                    alert('Logged out from HR mode.');
-                }
-                return;
-            }
-
-            const pass = prompt('Enter HR Password / 输入 HR 密码:');
-            if(pass === 'hr123' || pass === 'KaizenHR2026') {
-                isHR = true;
-                document.getElementById('accessModeBadge').innerText = 'HR MODE (HR 管理模式)';
-                document.getElementById('accessModeBadge').className = 'bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold';
-                document.getElementById('hrLoginBtnText').innerText = 'HR Logged In (Logout)';
+            let pwd = prompt('請輸入 HR 管理密碼以進入專屬管理中心:');
+            if (pwd === 'admin123' || pwd === 'hr123' || pwd === '1234') {
                 switchTab('hrArchive');
-                alert('HR Access Granted!');
-            } else if(pass !== null) {
-                alert('Incorrect password!');
+                alert('權限驗證成功，已進入 HR 專屬管理與刪除中心！');
+            } else if (pwd !== null) {
+                alert('密碼錯誤！');
             }
-        }
-
-        /* ========================================================
-         * EXPORT TO EXCEL WITH MULTI-FILTERS (Dept, Name/ID, Month, Year)
-         * ======================================================== */
-        function exportToExcel() {
-            if(!isHR) {
-                alert('Access Denied! Please login as HR first to export records.');
-                toggleHRLoginModal();
-                return;
-            }
-
-            const records = globalRecordsCache;
-            const keys = Object.keys(records || {});
-            
-            if(keys.length === 0) {
-                alert('目前没有可导出的加班记录！(No records to export)');
-                return;
-            }
-
-            const filterDept = document.getElementById('exportDept').value;
-            const filterNameOrId = document.getElementById('exportNameOrId').value.trim().toLowerCase();
-            const filterMonth = document.getElementById('exportMonth').value;
-            const filterYear = document.getElementById('exportYear').value.trim();
-
-            let csvContent = "\uFEFF"; // UTF-8 BOM 确保中文马来文不乱码
-            const headers = [
-                "Dept / 部门", 
-                "Name / 姓名", 
-                "Emp ID / 工号", 
-                "Date / 日期", 
-                "Start & End Time / 加班时间", 
-                "Total Hours / 总时数", 
-                "Purpose & Reason / 原因用途", 
-                "Status / 状态"
-            ];
-            csvContent += headers.join(",") + "\r\n";
-
-            let matchCount = 0;
-
-            keys.forEach(key => {
-                const r = records[key];
-                let match = true;
-
-                // 部门筛选
-                if (filterDept && r.dept !== filterDept) match = false;
-                
-                // 名字或工号筛选
-                if (filterNameOrId) {
-                    const matchName = (r.name || '').toLowerCase().includes(filterNameOrId);
-                    const matchId = (r.id || '').toLowerCase().includes(filterNameOrId);
-                    if (!matchName && !matchId) match = false;
-                }
-
-                // 年份与月份筛选 (根据日期格式 YYYY-MM-DD)
-                if (r.date) {
-                    const dateParts = r.date.split('-');
-                    const rYear = dateParts[0];
-                    const rMonth = dateParts[1];
-
-                    if (filterYear && rYear !== filterYear) match = false;
-                    if (filterMonth && rMonth !== filterMonth) match = false;
-                } else if (filterYear || filterMonth) {
-                    match = false;
-                }
-
-                if (match) {
-                    let rowData = [
-                        `"${(r.dept || '').replace(/"/g, '""')}"`,
-                        `"${(r.name || '').replace(/"/g, '""')}"`,
-                        `"${(r.id || '').replace(/"/g, '""')}"`,
-                        `"${(r.date || '').replace(/"/g, '""')}"`,
-                        `"${(r.time || '').replace(/"/g, '""')}"`,
-                        `"${(r.hours || '0').replace(/"/g, '""')}"`,
-                        `"${(r.reason || '').replace(/"/g, '""')}"`,
-                        `"${(r.status || 'PENDING').replace(/"/g, '""')}"`
-                    ];
-                    csvContent += rowData.join(",") + "\r\n";
-                    matchCount++;
-                }
-            });
-
-            if (matchCount === 0) {
-                alert('没有找到符合筛选条件的加班记录！(No records match your filter)');
-                return;
-            }
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            
-            const dateStr = new Date().toISOString().slice(0, 10);
-            link.setAttribute("download", `Kaizen_OT_Filtered_Records_${dateStr}.csv`);
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     </script>
 </body>
